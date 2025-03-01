@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:assignment_1/repositories/PersonRepository.dart';
-import 'package:assignment_1/repositories/VehicleRepository.dart';
-import 'package:assignment_1/repositories/ParkingSpaceRepository.dart';
-import 'package:assignment_1/repositories/ParkingRepository.dart';
+import 'package:assignment_1/cli/HandleParkings.dart';
+import 'package:assignment_1/cli/HandleParkingspaces.dart';
 import 'package:assignment_1/cli/HandlePersons.dart';
 import 'package:assignment_1/cli/HandleVehicles.dart';
-import 'package:assignment_1/cli/HandleParkingspaces.dart';
-import 'package:assignment_1/cli/HandleParkings.dart';
+import 'package:assignment_1/repositories/ParkingRepository.dart';
+import 'package:assignment_1/repositories/ParkingSpaceRepository.dart';
+import 'package:assignment_1/repositories/PersonRepository.dart';
+import 'package:assignment_1/repositories/VehicleRepository.dart';
 
 
 void main() {
