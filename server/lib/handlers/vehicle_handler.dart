@@ -1,0 +1,56 @@
+import 'dart:convert';
+import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
+import 'package:shared/shared.dart';
+
+class VehicleHandler {
+  final VehicleRepository repository;
+
+  VehicleHandler(this.repository);
+
+  Router get router {
+    final router = Router();
+
+    router.get('/', (Request request) async {
+      final vehicles = await repository.getAll();
+      final jsonResponse = jsonEncode(vehicles.map((v) => v.toJson()).toList());
+      return Response.ok(jsonResponse, headers: {'Content-Type': 'application/json'});
+    });
+
+    router.get('/<id>', (Request request, String id) async {
+      final vehicle = await repository.getById(id);
+      if (vehicle != null) {
+        return Response.ok(jsonEncode(vehicle.toJson()), headers: {'Content-Type': 'application/json'});
+      } else {
+        return Response.notFound('Vehicle not found');
+      }
+    });
+
+    router.post('/', (Request request) async {
+      final body = await request.readAsString();
+      final json = jsonDecode(body);
+      final vehicle = Vehicle.fromJson(json);
+      await repository.create(vehicle);
+      return Response.ok('Vehicle created', headers: {'Content-Type': 'application/json'});
+    });
+
+    router.put('/<id>', (Request request, String id) async {
+      final body = await request.readAsString();
+      final json = jsonDecode(body);
+      final vehicle = Vehicle.fromJson(json);
+      try {
+        await repository.update(id, vehicle);
+        return Response.ok('Vehicle updated', headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        return Response.notFound('Vehicle not found');
+      }
+    });
+
+    router.delete('/<id>', (Request request, String id) async {
+      await repository.delete(id);
+      return Response.ok('Vehicle deleted', headers: {'Content-Type': 'application/json'});
+    });
+
+    return router;
+  }
+}
