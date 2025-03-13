@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cli/cli.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared/shared.dart';
@@ -78,7 +79,7 @@ Future<void> createPerson(PersonRepository repository) async {
   final name = stdin.readLineSync();
   print('Enter personal number:');
   final personalNumber = stdin.readLineSync();
-  final person = Person(id: Uuid().v4(), name: name!, personalNumber: personalNumber!);
+  final person = Person(id: Random().nextInt(10), name: name!, personalNumber: personalNumber!);
   await repository.create(person);
   print('Person created successfully.');
 }
@@ -97,7 +98,7 @@ Future<void> updatePerson(PersonRepository repository) async {
   final name = stdin.readLineSync();
   print('Enter new personal number:');
   final personalNumber = stdin.readLineSync();
-  final person = Person(id: id!, name: name!, personalNumber: personalNumber!);
+  final person = Person(id: int.parse(id!), name: name!, personalNumber: personalNumber!);
   await repository.update(id, person);
   print('Person updated successfully.');
 }

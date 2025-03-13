@@ -3,6 +3,10 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shared/shared.dart';
 
+
+
+
+
 class PersonHandler {
   final PersonRepository repository;
 
@@ -12,9 +16,13 @@ class PersonHandler {
     final router = Router();
 
     router.get('/', (Request request) async {
+      try {
       final persons = await repository.getAll();
       final jsonResponse = jsonEncode(persons.map((p) => p.toJson()).toList());
       return Response.ok(jsonResponse, headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        return Response.internalServerError(body: 'Error: $e');
+      }
     });
 
     router.get('/<id>', (Request request, String id) async {

@@ -1,5 +1,5 @@
 class Parking {
-  final String id;
+  late final String id;
   final String vehicleId;
   final String parkingSpaceId;
   final DateTime startTime;

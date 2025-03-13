@@ -1,11 +1,12 @@
 import 'package:shared/shared.dart';
 
+
 class InMemoryPersonRepository implements PersonRepository {
   final Map<String, Person> _persons = {};
 
   @override
   Future<void> create(Person person) async {
-    _persons[person.id] = person;
+    _persons[person.id.toString()] = person;
   }
 
   @override

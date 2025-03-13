@@ -1,5 +1,5 @@
 class Vehicle {
-  final String id;
+  late final String id;
   final String registrationNumber;
   final String type;
   final String ownerId;
