@@ -6,7 +6,7 @@ class InMemoryPersonRepository implements PersonRepository {
 
   @override
   Future<void> create(Person person) async {
-    _persons[person.id.toString()] = person;
+    _persons[person.personalNumber.toString()] = person;
   }
 
   @override
@@ -32,4 +32,17 @@ class InMemoryPersonRepository implements PersonRepository {
   Future<void> delete(String id) async {
     _persons.remove(id);
   }
+  
+  @override
+  Future<Person?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Person item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

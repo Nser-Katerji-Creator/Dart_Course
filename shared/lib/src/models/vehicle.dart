@@ -1,29 +1,27 @@
 class Vehicle {
-  late final String id;
-  final String registrationNumber;
-  final String type;
-  final String ownerId;
+  //late final String id;
+  final String? registreringsnummer;
+  final String? type;
+  final int ownerId;
 
   Vehicle({
-    required this.id,
-    required this.registrationNumber,
+   // required this.id,
+    required this.registreringsnummer,
     required this.type,
     required this.ownerId,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'registrationNumber': registrationNumber,
+      'registreringsnummer': registreringsnummer,
       'type': type,
       'ownerId': ownerId,
     };
   }
 
-  factory Vehicle.fromJson(Map<String, dynamic> json) {
+  factory Vehicle.fromJson(Map<String?, dynamic> json) {
     return Vehicle(
-      id: json['id'],
-      registrationNumber: json['registrationNumber'],
+      registreringsnummer: json['registreringsnummer'],
       type: json['type'],
       ownerId: json['ownerId'],
     );

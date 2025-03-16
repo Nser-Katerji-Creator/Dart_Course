@@ -1,11 +1,11 @@
 import 'package:shared/shared.dart';
 
 class InMemoryVehicleRepository implements VehicleRepository {
-  final Map<String, Vehicle> _vehicles = {};
+  final Map<String?, Vehicle> _vehicles = {};
 
   @override
   Future<void> create(Vehicle vehicle) async {
-    _vehicles[vehicle.id] = vehicle;
+    _vehicles[vehicle.registreringsnummer] = vehicle;
   }
 
   @override
@@ -31,4 +31,17 @@ class InMemoryVehicleRepository implements VehicleRepository {
   Future<void> delete(String id) async {
     _vehicles.remove(id);
   }
+  
+  @override
+  Future<Vehicle?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Vehicle item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

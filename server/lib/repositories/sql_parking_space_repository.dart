@@ -51,6 +51,19 @@ class SqliteParkingSpaceRepository implements ParkingSpaceRepository {
     final db = dbHelper.database;
     db.execute('DELETE FROM parkingspaces WHERE id = ?;', [int.parse(id)]);
   }
+  
+  @override
+  Future<ParkingSpace?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, ParkingSpace item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }
 
 extension on Database {

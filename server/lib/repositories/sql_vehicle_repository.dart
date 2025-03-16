@@ -8,14 +8,20 @@ class SqliteVehicleRepository implements VehicleRepository {
 
   @override
   Future<int> create(Vehicle vehicle) async {
-
-    final result = await dbHelper.insertVehicle({
+    final db = dbHelper.database;
+   /* final result = await dbHelper.insertVehicle({
       'registreringsnummer': vehicle.registrationNumber,
       'type': vehicle.type,
       'ownerId': vehicle.ownerId,
-    } as Vehicle);
+    } as Vehicle);*/
 
-    return result;
+    db.execute('''
+      INSERT INTO vehicles (registreringsnummer, type, ownerId)
+      VALUES (?, ?, ?);
+    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
+
+      final result = db.select('SELECT last_insert_rowid() as id;');
+       return result.first['id'] as int;
   }
 
   @override
@@ -42,7 +48,7 @@ class SqliteVehicleRepository implements VehicleRepository {
       UPDATE vehicles
       SET registreringsnummer = ?, type = ?, ownerId = ?
       WHERE id = ?;
-    ''', [vehicle.registrationNumber, vehicle.type, vehicle.ownerId, id]);
+    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId, id]);
   }
 
   @override
@@ -50,4 +56,17 @@ class SqliteVehicleRepository implements VehicleRepository {
     final db = dbHelper.database;
     db.execute('DELETE FROM vehicles WHERE id = ?;', [id]);
   }
+  
+  @override
+  Future<Vehicle?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Vehicle item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

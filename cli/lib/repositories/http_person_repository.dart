@@ -55,10 +55,35 @@ class HttpPersonRepository implements PersonRepository {
   }
 
   @override
-  Future<void> delete(String id) async {
-    final response = await client.delete(Uri.parse('http://localhost:8080/persons/$id'));
+  Future<void> delete(String personalNumber) async {
+    final response = await client.delete(Uri.parse('http://localhost:8080/persons/$personalNumber'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete person');
+    }
+  }
+  
+  @override
+  Future<Person?> getBypersonalNumber(String personalNumber) async {
+    final response = await client.get(Uri.parse('http://localhost:8080/persons/$personalNumber'));
+    if (response.statusCode == 200) {
+      return Person.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      return null;
+    } else {
+      throw Exception('Failed to load person');
+    }
+  }
+  
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Person item) async {
+    final response = await client.put(
+      Uri.parse('http://localhost:8080/persons/$personalNumber'),
+      body: jsonEncode(item.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('http Failed to update person');
     }
   }
 }

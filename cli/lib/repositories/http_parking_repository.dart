@@ -61,4 +61,17 @@ class HttpParkingRepository implements ParkingRepository {
       throw Exception('Failed to delete parking');
     }
   }
+  
+  @override
+  Future<Parking?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Parking item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

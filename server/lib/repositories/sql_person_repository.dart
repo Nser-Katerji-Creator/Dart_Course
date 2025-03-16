@@ -10,7 +10,7 @@ class SqlitePersonRepository implements PersonRepository {
   Future<int> create(Person person) async {
     final db = dbHelper.database;
     db.execute('''
-      INSERT INTO persons (name, personnummer)
+      INSERT INTO persons (name, personalNumber)
       VALUES (?, ?);
     ''', [person.name, person.personalNumber]);
 
@@ -25,13 +25,35 @@ class SqlitePersonRepository implements PersonRepository {
     print('Database result: $result'); // Debugging
     return result.map((row){
       print('Row: $row'); // Debugging
-      if (row['name'] == null || row['personnummer'] == null) {
-        throw Exception('Invalid data: name or personnummer is null');
+      if (row['name'] == null || row['personalNumber'] == null) {
+        throw Exception('Invalid data: name or personalNumber is null');
       }
       return Person.fromJson(row);
     }).toList();
   }
 
+   @override
+  Future<Person?> getBypersonalNumber(String personalNumber) async {
+    return await dbHelper.getBypersonalNumber(personalNumber);
+
+  }
+
+  @override
+  Future<void> update(String id, Person person) async {
+    final db = dbHelper.database;
+    db.execute('''
+      UPDATE persons
+      SET name = ?, personalNumber = ?
+      WHERE id = ?;
+    ''', [person.name, person.personalNumber, id]);
+  }
+
+  @override
+  Future<void> delete(String personalNumber) async {
+    final db = dbHelper.database;
+    db.execute('DELETE FROM persons WHERE personalNumber = ?;', [personalNumber]);
+  }
+  
   @override
   Future<Person?> getById(String id) async {
     final db = dbHelper.database;
@@ -41,20 +63,15 @@ class SqlitePersonRepository implements PersonRepository {
     }
     return null;
   }
-
+  
   @override
-  Future<void> update(String id, Person person) async {
+Future<void> updateBypersonalNumber(String personalNumber, Person item) async {
     final db = dbHelper.database;
     db.execute('''
       UPDATE persons
-      SET name = ?, personnummer = ?
-      WHERE id = ?;
-    ''', [person.name, person.personalNumber, id]);
+      SET name = ?
+      WHERE personalNumber = ?;
+    ''', [item.name, item.personalNumber]);
+   // await dbHelper.updateBypersonalNumber(personalNumber,item);
   }
-
-  @override
-  Future<void> delete(String id) async {
-    final db = dbHelper.database;
-    db.execute('DELETE FROM persons WHERE id = ?;', [id]);
-  }
-  }
+  }  

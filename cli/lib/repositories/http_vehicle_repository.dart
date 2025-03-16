@@ -61,4 +61,17 @@ class HttpVehicleRepository implements VehicleRepository {
       throw Exception('Failed to delete vehicle');
     }
   }
+  
+  @override
+  Future<Vehicle?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Vehicle item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

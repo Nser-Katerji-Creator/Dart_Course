@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:cli/cli.dart';
@@ -6,12 +7,13 @@ import 'package:shared/shared.dart';
 import 'package:uuid/uuid.dart';
 
 void main() async {
+  
   final client = http.Client();
   final personRepository = HttpPersonRepository(client);
   final vehicleRepository = HttpVehicleRepository(client);
   final parkingSpaceRepository = HttpParkingSpaceRepository(client);
   final parkingRepository = HttpParkingRepository(client);
-
+  
   while (true) {
     print('Welcome to the Parking App!');
     print('What would you like to manage?');
@@ -61,7 +63,7 @@ Future<void> managePersons(PersonRepository repository) async {
         await listPersons(repository);
         break;
       case '3':
-        await updatePerson(repository);
+        await updatePersonByPersonnummer(repository);
         break;
       case '4':
         await deletePerson(repository);
@@ -79,7 +81,7 @@ Future<void> createPerson(PersonRepository repository) async {
   final name = stdin.readLineSync();
   print('Enter personal number:');
   final personalNumber = stdin.readLineSync();
-  final person = Person(id: Random().nextInt(10), name: name!, personalNumber: personalNumber!);
+  final person = Person( name: name!, personalNumber: personalNumber!);
   await repository.create(person);
   print('Person created successfully.');
 }
@@ -87,26 +89,59 @@ Future<void> createPerson(PersonRepository repository) async {
 Future<void> listPersons(PersonRepository repository) async {
   final persons = await repository.getAll();
   for (var person in persons) {
-    print('ID: ${person.id}, Name: ${person.name}, Personal Number: ${person.personalNumber}');
+    print('Name: ${person.name}, Personal Number: ${person.personalNumber}');
   }
 }
 
+Future<void> updatePersonByPersonnummer(PersonRepository repository) async {
+  // Prompt the user for the personalNumber of the person to update
+  print('Enter the personalNumber of the person to update:');
+  final personalNumber = stdin.readLineSync()!;
+
+  // Find the person by personalNumber (optional, to show current details)
+  final person = await repository.getBypersonalNumber(personalNumber);
+  print('Person found: $person');
+  if (person == null) {
+    print('No person found with personalNumber: $personalNumber');
+    return;
+  }
+
+  print('Current details:');
+  print('Name: ${person.name}, personalNumber: ${person.personalNumber}');
+
+  // Prompt the user for the updated data
+  print('Enter the new name (leave blank to keep current):');
+  final name = stdin.readLineSync();
+  //print('Enter the new personalNumber (leave blank to keep current):');
+  //final newPersonalNumber = stdin.readLineSync();
+
+  // Create the updated person object
+  final updatedPerson = Person(
+    name: name?.isNotEmpty == true ? name! : person.name,
+    personalNumber: personalNumber.isNotEmpty == true ? personalNumber : person.personalNumber,
+  );
+
+  // Send the update request to the repository
+  await repository.updateBypersonalNumber(personalNumber, updatedPerson);
+  print('Person updated successfully.');
+}
+
 Future<void> updatePerson(PersonRepository repository) async {
-  print('Enter the ID of the person to update:');
-  final id = stdin.readLineSync();
+  print('Enter the personal number of the person to update:');
+  final personalNumber = stdin.readLineSync();
   print('Enter new name:');
   final name = stdin.readLineSync();
-  print('Enter new personal number:');
-  final personalNumber = stdin.readLineSync();
-  final person = Person(id: int.parse(id!), name: name!, personalNumber: personalNumber!);
-  await repository.update(id, person);
+  //print('Enter new id number:');
+  //final id = stdin.readLineSync();
+  final person = Person(name: name!, personalNumber: personalNumber!);
+  await repository.updateBypersonalNumber(personalNumber, person);
   print('Person updated successfully.');
 }
 
 Future<void> deletePerson(PersonRepository repository) async {
-  print('Enter the ID of the person to delete:');
-  final id = stdin.readLineSync();
-  await repository.delete(id!);
+  print('Enter the Personal Number of the person to delete:');
+  final personalNumber = stdin.readLineSync();
+  await repository.delete(personalNumber!);
   print('Person deleted successfully.');
 }
 
@@ -143,16 +178,15 @@ Future<void> manageVehicles(VehicleRepository repository) async {
 
 Future<void> createVehicle(VehicleRepository repository) async {
   print('Enter registration number:');
-  final registrationNumber = stdin.readLineSync();
+  final registreringsnummer = stdin.readLineSync();
   print('Enter vehicle type:');
   final type = stdin.readLineSync();
   print('Enter owner ID:');
   final ownerId = stdin.readLineSync();
   final vehicle = Vehicle(
-    id: Uuid().v4(),
-    registrationNumber: registrationNumber!,
+    registreringsnummer: registreringsnummer!,
     type: type!,
-    ownerId: ownerId!,
+    ownerId: int.parse(ownerId!),
   );
   await repository.create(vehicle);
   print('Vehicle created successfully.');
@@ -161,7 +195,7 @@ Future<void> createVehicle(VehicleRepository repository) async {
 Future<void> listVehicles(VehicleRepository repository) async {
   final vehicles = await repository.getAll();
   for (var vehicle in vehicles) {
-    print('ID: ${vehicle.id}, Registration Number: ${vehicle.registrationNumber}, Type: ${vehicle.type}, Owner ID: ${vehicle.ownerId}');
+    print('Registration Number: ${vehicle.registreringsnummer}, Type: ${vehicle.type}, Owner ID: ${vehicle.ownerId}');
   }
 }
 
@@ -169,18 +203,17 @@ Future<void> updateVehicle(VehicleRepository repository) async {
   print('Enter the ID of the vehicle to update:');
   final id = stdin.readLineSync();
   print('Enter new registration number:');
-  final registrationNumber = stdin.readLineSync();
+  final registreringsnummer = stdin.readLineSync();
   print('Enter new vehicle type:');
   final type = stdin.readLineSync();
   print('Enter new owner ID:');
   final ownerId = stdin.readLineSync();
   final vehicle = Vehicle(
-    id: id!,
-    registrationNumber: registrationNumber!,
+    registreringsnummer: registreringsnummer!,
     type: type!,
-    ownerId: ownerId!,
+    ownerId: int.parse(ownerId!),
   );
-  await repository.update(id, vehicle);
+  await repository.update(registreringsnummer, vehicle);
   print('Vehicle updated successfully.');
 }
 

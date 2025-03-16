@@ -32,4 +32,17 @@ class InMemoryParkingRepository implements ParkingRepository {
   Future<void> delete(String id) async {
     _parkings.remove(id);
   }
+  
+  @override
+  Future<Parking?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Parking item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }

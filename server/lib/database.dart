@@ -28,7 +28,7 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS persons (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        personnummer TEXT NOT NULL
+        personalNumber TEXT NOT NULL
       );
     ''');
 
@@ -69,7 +69,7 @@ class DatabaseHelper {
   Future<int> insertPerson(Person person) async {
     final db = database;
     db.execute('''
-      INSERT INTO persons (name, personnummer)
+      INSERT INTO persons (name, personalNumber)
       VALUES (?, ?);
     ''', [person.name, person.personalNumber]);
 
@@ -91,18 +91,37 @@ class DatabaseHelper {
     return null;
   }
 
+  
+  Future<Person?> getBypersonalNumber(String personalNumber) async {
+    final db = database;
+    final result = db.select('SELECT * FROM persons WHERE personalNumber = ?;', [personalNumber]);
+    print('Data base result is : $result');
+    if (result.isNotEmpty) {
+      return Person.fromJson(result.first);
+    }
+    return null;
+  }
+  Future<void> updateBypersonalNumber(String personalNumber, Person item) async {
+     final db = database;
+    db.execute('''
+      UPDATE persons
+      SET name = ?, personalNumber = ?
+      WHERE personalNumber = ?;
+    ''', [item.name, item.personalNumber, personalNumber]);
+  }
+
   Future<void> updatePerson(Person person) async {
     final db = database;
     db.execute('''
       UPDATE persons
-      SET name = ?, personnummer = ?
-      WHERE id = ?;
-    ''', [person.name, person.personalNumber, person.id]);
+      SET name = ?, personalNumber = ?
+      WHERE personalNumber = ?;
+    ''', [person.name, person.personalNumber]);
   }
 
-  Future<void> deletePerson(int id) async {
+  Future<void> deletePerson(int personalNumber) async {
     final db = database;
-    db.execute('DELETE FROM persons WHERE id = ?;', [id]);
+    db.execute('DELETE FROM persons WHERE id = ?;', [personalNumber]);
   }
 
   // CRUD operations for Vehicle
@@ -111,7 +130,7 @@ class DatabaseHelper {
     db.execute('''
       INSERT INTO vehicles (registreringsnummer, type, ownerId)
       VALUES (?, ?, ?);
-    ''', [vehicle.registrationNumber, vehicle.type, vehicle.ownerId]);
+    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
 
     return db.lastInsertRowId;
   }
@@ -137,7 +156,7 @@ class DatabaseHelper {
       UPDATE vehicles
       SET registreringsnummer = ?, type = ?, ownerId = ?
       WHERE id = ?;
-    ''', [vehicle.registrationNumber, vehicle.type, vehicle.ownerId, vehicle.id]);
+    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
   }
 
   Future<void> deleteVehicle(int id) async {

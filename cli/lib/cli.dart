@@ -43,6 +43,19 @@ class HttpPersonRepository implements PersonRepository {
   }
 
   @override
+  Future<Person?> getBypersonalNumber(String personalNumber) async {
+    final response = await client.get(Uri.parse('http://localhost:8080/persons/$personalNumber'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      return Person.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      return null;
+    } else {
+      throw Exception('Failed to load person');
+    }
+  }
+
+  @override
   Future<void> update(String id, Person person) async {
     final response = await client.put(
       Uri.parse('http://localhost:8080/persons/$id'),
@@ -55,8 +68,21 @@ class HttpPersonRepository implements PersonRepository {
   }
 
   @override
-  Future<void> delete(String id) async {
-    final response = await client.delete(Uri.parse('http://localhost:8080/persons/$id'));
+  Future<void> updateBypersonalNumber(String personalNumber, Person item) async {
+    final response = await client.put(
+      Uri.parse('http://localhost:8080/persons/$personalNumber'),
+      body: jsonEncode(item.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.body);
+    if (response.statusCode != 200) {
+      throw Exception('CLI Failed to update person');
+    }
+  }
+
+  @override
+  Future<void> delete(String personalNumber) async {
+    final response = await client.delete(Uri.parse('http://localhost:8080/persons/$personalNumber'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete person');
     }
@@ -122,6 +148,19 @@ class HttpVehicleRepository implements VehicleRepository {
       throw Exception('Failed to delete vehicle');
     }
   }
+  
+  @override
+  Future<Vehicle?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Vehicle item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }
 
 class HttpParkingSpaceRepository implements ParkingSpaceRepository {
@@ -183,6 +222,19 @@ class HttpParkingSpaceRepository implements ParkingSpaceRepository {
       throw Exception('Failed to delete parking space');
     }
   }
+  
+  @override
+  Future<ParkingSpace?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, ParkingSpace item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }
 
 class HttpParkingRepository implements ParkingRepository {
@@ -244,4 +296,17 @@ class HttpParkingRepository implements ParkingRepository {
       throw Exception('Failed to delete parking');
     }
   }
+  
+  @override
+  Future<Parking?> getBypersonalNumber(String personalNumber) {
+    // TODO: implement getBypersonalNumber
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateBypersonalNumber(String personalNumber, Parking item) {
+    // TODO: implement updateBypersonalNumber
+    throw UnimplementedError();
+  }
+  
 }
