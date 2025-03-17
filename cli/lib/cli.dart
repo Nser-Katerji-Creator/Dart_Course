@@ -118,8 +118,8 @@ class HttpVehicleRepository implements VehicleRepository {
   }
 
   @override
-  Future<Vehicle?> getById(String id) async {
-    final response = await client.get(Uri.parse('http://localhost:8080/vehicles/$id'));
+  Future<Vehicle?> getById(String registreringsnummer) async {
+    final response = await client.get(Uri.parse('http://localhost:8080/vehicles/$registreringsnummer'));
     if (response.statusCode == 200) {
       return Vehicle.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
@@ -130,9 +130,9 @@ class HttpVehicleRepository implements VehicleRepository {
   }
 
   @override
-  Future<void> update(String id, Vehicle vehicle) async {
+  Future<void> update(String registreringsnummer, Vehicle vehicle) async {
     final response = await client.put(
-      Uri.parse('http://localhost:8080/vehicles/$id'),
+      Uri.parse('http://localhost:8080/vehicles/$registreringsnummer'),
       body: jsonEncode(vehicle.toJson()),
       headers: {'Content-Type': 'application/json'},
     );
@@ -142,8 +142,8 @@ class HttpVehicleRepository implements VehicleRepository {
   }
 
   @override
-  Future<void> delete(String id) async {
-    final response = await client.delete(Uri.parse('http://localhost:8080/vehicles/$id'));
+  Future<void> delete(String registreringsnummer) async {
+    final response = await client.delete(Uri.parse('http://localhost:8080/vehicles/$registreringsnummer'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete vehicle');
     }

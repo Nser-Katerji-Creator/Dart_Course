@@ -17,8 +17,8 @@ class VehicleHandler {
       return Response.ok(jsonResponse, headers: {'Content-Type': 'application/json'});
     });
 
-    router.get('/<id>', (Request request, String id) async {
-      final vehicle = await repository.getById(id);
+    router.get('/<registreringsnummer>', (Request request, String registreringsnummer) async {
+      final vehicle = await repository.getById(registreringsnummer);
       if (vehicle != null) {
         return Response.ok(jsonEncode(vehicle.toJson()), headers: {'Content-Type': 'application/json'});
       } else {
@@ -34,20 +34,20 @@ class VehicleHandler {
       return Response.ok('Vehicle created', headers: {'Content-Type': 'application/json'});
     });
 
-    router.put('/<id>', (Request request, String id) async {
+    router.put('/<registreringsnummer>', (Request request, String registreringsnummer) async {
       final body = await request.readAsString();
       final json = jsonDecode(body);
       final vehicle = Vehicle.fromJson(json);
       try {
-        await repository.update(id, vehicle);
+        await repository.update(registreringsnummer, vehicle);
         return Response.ok('Vehicle updated', headers: {'Content-Type': 'application/json'});
       } catch (e) {
         return Response.notFound('Vehicle not found');
       }
     });
 
-    router.delete('/<id>', (Request request, String id) async {
-      await repository.delete(id);
+    router.delete('/<registreringsnummer>', (Request request, String registreringsnummer) async {
+      await repository.delete(registreringsnummer);
       return Response.ok('Vehicle deleted', headers: {'Content-Type': 'application/json'});
     });
 

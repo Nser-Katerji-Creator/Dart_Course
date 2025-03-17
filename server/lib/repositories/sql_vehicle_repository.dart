@@ -32,9 +32,9 @@ class SqliteVehicleRepository implements VehicleRepository {
   }
 
   @override
-  Future<Vehicle?> getById(String id) async {
+  Future<Vehicle?> getById(String registreringsnummer) async {
     final db = dbHelper.database;
-    final result = db.select('SELECT * FROM vehicles WHERE id = ?;', [id]);
+    final result = db.select('SELECT * FROM vehicles WHERE registreringsnummer = ?;', [registreringsnummer]);
     if (result.isNotEmpty) {
       return Vehicle.fromJson(result.first);
     }
@@ -42,19 +42,22 @@ class SqliteVehicleRepository implements VehicleRepository {
   }
 
   @override
-  Future<void> update(String id, Vehicle vehicle) async {
+  Future<void> update(String registreringsnummer, Vehicle vehicle) async {
     final db = dbHelper.database;
-    db.execute('''
+     db.execute(
+      '''
       UPDATE vehicles
       SET registreringsnummer = ?, type = ?, ownerId = ?
-      WHERE id = ?;
-    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId, id]);
+      WHERE registreringsnummer = ?;
+      ''',
+      [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId, registreringsnummer],
+    );
   }
 
   @override
-  Future<void> delete(String id) async {
+  Future<void> delete(String registreringsnummer) async {
     final db = dbHelper.database;
-    db.execute('DELETE FROM vehicles WHERE id = ?;', [id]);
+    db.execute('DELETE FROM vehicles WHERE registreringsnummer = ?;', [registreringsnummer]);
   }
   
   @override

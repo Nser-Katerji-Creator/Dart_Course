@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:cli/cli.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared/shared.dart';
@@ -200,8 +198,6 @@ Future<void> listVehicles(VehicleRepository repository) async {
 }
 
 Future<void> updateVehicle(VehicleRepository repository) async {
-  print('Enter the ID of the vehicle to update:');
-  final id = stdin.readLineSync();
   print('Enter new registration number:');
   final registreringsnummer = stdin.readLineSync();
   print('Enter new vehicle type:');
@@ -218,9 +214,9 @@ Future<void> updateVehicle(VehicleRepository repository) async {
 }
 
 Future<void> deleteVehicle(VehicleRepository repository) async {
-  print('Enter the ID of the vehicle to delete:');
-  final id = stdin.readLineSync();
-  await repository.delete(id!);
+  print('Enter the Registering Number of the vehicle to delete:');
+  final registreringsnummer = stdin.readLineSync();
+  await repository.delete(registreringsnummer!);
   print('Vehicle deleted successfully.');
 }
 

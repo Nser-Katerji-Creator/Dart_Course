@@ -141,27 +141,27 @@ class DatabaseHelper {
     return result.map((row) => Vehicle.fromJson(row)).toList();
   }
 
-  Future<Vehicle?> getVehicleById(int id) async {
+  Future<Vehicle?> getVehicleById(String registreringsnummer) async {
     final db = database;
-    final result = db.select('SELECT * FROM vehicles WHERE id = ?;', [id]);
+    final result = db.select('SELECT * FROM vehicles WHERE registreringsnummer = ?;', [registreringsnummer]);
     if (result.isNotEmpty) {
       return Vehicle.fromJson(result.first);
     }
     return null;
   }
 
-  Future<void> updateVehicle(Vehicle vehicle) async {
+  Future<void> updateVehicle(String registreringsnummer, Vehicle vehicle) async {
     final db = database;
     db.execute('''
       UPDATE vehicles
-      SET registreringsnummer = ?, type = ?, ownerId = ?
-      WHERE id = ?;
-    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
+      SET type = ?, ownerId = ?
+      WHERE registreringsnummer = ?;
+    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId, registreringsnummer]);
   }
 
-  Future<void> deleteVehicle(int id) async {
+  Future<void> deleteVehicle(int registreringsnummer) async {
     final db = database;
-    db.execute('DELETE FROM vehicles WHERE id = ?;', [id]);
+    db.execute('DELETE FROM vehicles WHERE registreringsnummer = ?;', [registreringsnummer]);
   }
 
   // CRUD operations for ParkingSpace
