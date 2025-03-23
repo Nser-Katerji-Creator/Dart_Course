@@ -333,8 +333,8 @@ Future<void> createParking(ParkingRepository repository) async {
   final parkingSpaceId = stdin.readLineSync();
   final parking = Parking(
     id: Uuid().v4(),
-    vehicleId: vehicleId!,
-    parkingSpaceId: parkingSpaceId!,
+    vehicleId: int.parse(vehicleId!),
+    parkingSpaceId: parkingSpaceId.toString(),
     startTime: DateTime.now(),
   );
   await repository.create(parking);
@@ -360,8 +360,8 @@ Future<void> updateParking(ParkingRepository repository) async {
   final endTime = endTimeInput?.isNotEmpty == true ? DateTime.parse(endTimeInput!) : null;
   final parking = Parking(
     id: id!,
-    vehicleId: vehicleId!,
-    parkingSpaceId: parkingSpaceId!,
+    vehicleId: int.parse(vehicleId!),
+    parkingSpaceId: parkingSpaceId.toString(),
     startTime: DateTime.now(),
     endTime: endTime,
   );

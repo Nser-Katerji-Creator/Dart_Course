@@ -10,13 +10,16 @@ class SqliteParkingSpaceRepository implements ParkingSpaceRepository {
 
   @override
   Future<int> create(ParkingSpace parkingSpace) async {
-    final db = dbHelper.database;
-    final result = await db.insert('parkingspaces', {
-      'address': parkingSpace.address,
-      'pricePerHour': parkingSpace.pricePerHour,
-    });
 
-    return result;
+    final db =  dbHelper.database;
+    db.execute('''
+      INSERT INTO parkingspaces (id, address, pricePerHour)
+      VALUES (?, ?, ?);
+    ''', [parkingSpace.id, parkingSpace.address, parkingSpace.pricePerHour]);
+
+      final result = db.select('SELECT last_insert_rowid() as id;');
+       return result.first['id'] as int;
+    
   }
 
   @override
@@ -43,13 +46,13 @@ class SqliteParkingSpaceRepository implements ParkingSpaceRepository {
       UPDATE parkingspaces
       SET address = ?, pricePerHour = ?
       WHERE id = ?;
-    ''', [parkingSpace.address, parkingSpace.pricePerHour, int.parse(id)]);
+    ''', [parkingSpace.address, parkingSpace.pricePerHour, id]);
   }
 
   @override
   Future<void> delete(String id) async {
     final db = dbHelper.database;
-    db.execute('DELETE FROM parkingspaces WHERE id = ?;', [int.parse(id)]);
+    db.execute('DELETE FROM parkingspaces WHERE id = ?;', [id]);
   }
   
   @override

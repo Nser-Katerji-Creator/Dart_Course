@@ -10,29 +10,34 @@ class SqliteParkingRepository implements ParkingRepository {
   SqliteParkingRepository(this.dbHelper);
 
   @override
-  Future<int> create(Parking parking) async {
+  Future<String> create(Parking parking) async {
     final db = dbHelper.database;
-    final result = await db.insert('parkings', {
-      'vehicleId': parking.vehicleId,
-      'parkingspaceId': parking.parkingSpaceId,
-      'startTime': parking.startTime,
-      'endTime': parking.endTime,
-    });
-
-    return result;
+    db.execute('''
+      INSERT INTO parkings (id, vehicleId, parkingSpaceId, startTime, endTime)
+      VALUES (?, ?, ?, ?, ?);
+    ''', [
+      parking.id,
+      parking.vehicleId,
+      parking.parkingSpaceId,
+      parking.startTime.toIso8601String(),
+      parking.endTime?.toIso8601String()
+    ]);
+    return parking.id;
+    
   }
 
   @override
   Future<List<Parking>> getAll() async {
     final db = dbHelper.database;
     final result = db.select('SELECT * FROM parkings;');
+    print(result);
     return result.map((row) => Parking.fromJson(row)).toList();
   }
 
   @override
   Future<Parking?> getById(String id) async {
     final db = dbHelper.database;
-    final result = db.select('SELECT * FROM parkings WHERE id = ?;', [int.parse(id)]);
+    final result = db.select('SELECT * FROM parkings WHERE id = ?;', [id] );
     if (result.isNotEmpty) {
       return Parking.fromJson(result.first);
     }
@@ -41,18 +46,24 @@ class SqliteParkingRepository implements ParkingRepository {
 
   @override
   Future<void> update(String id, Parking parking) async {
-    final db = dbHelper.database;
+  final db = dbHelper.database;
     db.execute('''
       UPDATE parkings
-      SET vehicleId = ?, parkingspaceId = ?, startTime = ?, endTime = ?
+      SET vehicleId = ?, parkingSpaceId = ?, startTime = ?, endTime = ?
       WHERE id = ?;
-    ''', [parking.vehicleId, parking.parkingSpaceId, parking.startTime, parking.endTime, int.parse(id)]);
+    ''', [
+      parking.vehicleId,
+      parking.parkingSpaceId,
+      parking.startTime.toIso8601String(),
+      parking.endTime?.toIso8601String(),
+      id
+    ]);
   }
 
   @override
   Future<void> delete(String id) async {
     final db = dbHelper.database;
-    db.execute('DELETE FROM parkings WHERE id = ?;', [int.parse(id)]);
+    db.execute('DELETE FROM parkings WHERE id = ?;', [id]);
   }
   
   @override

@@ -1,5 +1,5 @@
 class ParkingSpace {
-  late final String id;
+  final String id;
   final String address;
   final double pricePerHour;
 

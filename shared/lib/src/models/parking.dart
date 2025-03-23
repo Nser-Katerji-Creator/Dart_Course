@@ -1,6 +1,6 @@
 class Parking {
-  late final String id;
-  final String vehicleId;
+  final String id;
+  final int vehicleId;
   final String parkingSpaceId;
   final DateTime startTime;
   final DateTime? endTime;
@@ -17,7 +17,7 @@ class Parking {
     return {
       'id': id,
       'vehicleId': vehicleId,
-      'parkingSpaceId': parkingSpaceId,
+      'parkingspaceId': parkingSpaceId,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
     };
@@ -25,10 +25,10 @@ class Parking {
 
   factory Parking.fromJson(Map<String, dynamic> json) {
     return Parking(
-      id: json['id'],
-      vehicleId: json['vehicleId'],
-      parkingSpaceId: json['parkingSpaceId'],
-      startTime: DateTime.parse(json['startTime']),
+      id: json['id'] ?? '',
+      vehicleId: json['vehicleId'] is int ? json['vehicleId'] : int.parse(json['vehicleId'] ?? '0'),
+      parkingSpaceId: json['parkingspaceId'] ?? '',
+      startTime: DateTime.parse(json['startTime'] ?? DateTime.now().toIso8601String()),
       endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
     );
   }

@@ -44,7 +44,7 @@ class DatabaseHelper {
 
     db.execute('''
       CREATE TABLE IF NOT EXISTS parkingspaces (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY NOT NULL,
         address TEXT NOT NULL,
         pricePerHour REAL NOT NULL
       );
@@ -52,9 +52,9 @@ class DatabaseHelper {
 
     db.execute('''
       CREATE TABLE IF NOT EXISTS parkings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY NOT NULL,
         vehicleId INTEGER NOT NULL,
-        parkingspaceId INTEGER NOT NULL,
+        parkingspaceId TEXT NOT NULL,
         startTime TEXT NOT NULL,
         endTime TEXT,
         FOREIGN KEY (vehicleId) REFERENCES vehicles(id),
@@ -168,9 +168,9 @@ class DatabaseHelper {
   Future<int> insertParkingSpace(ParkingSpace parkingSpace) async {
     final db = database;
     db.execute('''
-      INSERT INTO parkingspaces (address, pricePerHour)
-      VALUES (?, ?);
-    ''', [parkingSpace.address, parkingSpace.pricePerHour]);
+      INSERT INTO parkingspaces (id, address, pricePerHour)
+      VALUES (?, ?, ?);
+    ''', [parkingSpace.id, parkingSpace.address, parkingSpace.pricePerHour]);
 
     return db.lastInsertRowId;
   }
@@ -208,9 +208,9 @@ class DatabaseHelper {
   Future<int> insertParking(Parking parking) async {
     final db = database;
     db.execute('''
-      INSERT INTO parkings (vehicleId, parkingspaceId, startTime, endTime)
-      VALUES (?, ?, ?, ?);
-    ''', [parking.vehicleId, parking.parkingSpaceId, parking.startTime, parking.endTime]);
+      INSERT INTO parkings (id, vehicleId, parkingspaceId, startTime, endTime)
+      VALUES (?, ?, ?, ?, ?);
+    ''', [parking.id, parking.vehicleId, parking.parkingSpaceId, parking.startTime, parking.endTime]);
 
     return db.lastInsertRowId;
   }
@@ -218,10 +218,11 @@ class DatabaseHelper {
   Future<List<Parking>> getAllParkings() async {
     final db = database;
     final result = db.select('SELECT * FROM parkings;');
+    print(result);
     return result.map((row) => Parking.fromJson(row)).toList();
   }
 
-  Future<Parking?> getParkingById(int id) async {
+  Future<Parking?> getParkingById(String id) async {
     final db = database;
     final result = db.select('SELECT * FROM parkings WHERE id = ?;', [id]);
     if (result.isNotEmpty) {
@@ -239,7 +240,7 @@ class DatabaseHelper {
     ''', [parking.vehicleId, parking.parkingSpaceId, parking.startTime, parking.endTime, parking.id]);
   }
 
-  Future<void> deleteParking(int id) async {
+  Future<void> deleteParking(String id) async {
     final db = database;
     db.execute('DELETE FROM parkings WHERE id = ?;', [id]);
   }

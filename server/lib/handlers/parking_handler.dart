@@ -13,6 +13,7 @@ class ParkingHandler {
 
     router.get('/', (Request request) async {
       final parkings = await repository.getAll();
+      print(parkings);
       final jsonResponse = jsonEncode(parkings.map((p) => p.toJson()).toList());
       return Response.ok(jsonResponse, headers: {'Content-Type': 'application/json'});
     });

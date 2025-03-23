@@ -175,6 +175,7 @@ class HttpParkingSpaceRepository implements ParkingSpaceRepository {
       body: jsonEncode(parkingSpace.toJson()),
       headers: {'Content-Type': 'application/json'},
     );
+      print(response.body);
     if (response.statusCode != 200) {
       throw Exception('Failed to create parking space');
     }
@@ -257,6 +258,7 @@ class HttpParkingRepository implements ParkingRepository {
   @override
   Future<List<Parking>> getAll() async {
     final response = await client.get(Uri.parse('http://localhost:8080/parkings'));
+    //print(response.body);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       return jsonList.map((json) => Parking.fromJson(json)).toList();
