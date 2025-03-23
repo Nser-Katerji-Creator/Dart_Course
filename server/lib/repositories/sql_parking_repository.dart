@@ -81,5 +81,4 @@ class SqliteParkingRepository implements ParkingRepository {
 }
 
 extension on Database {
-  insert(String s, Map<String, Object?> map) {}
 }

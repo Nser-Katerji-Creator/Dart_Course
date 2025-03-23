@@ -1,8 +1,12 @@
 import 'dart:io';
-import 'package:cli/cli.dart';
+//import 'package:cli/cli.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared/shared.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cli/repositories/http_parking_repository.dart';
+import 'package:cli/repositories/http_parking_space_repository.dart';
+import 'package:cli/repositories/http_person_repository.dart';
+import 'package:cli/repositories/http_vehicle_repository.dart';
 
 void main() async {
   
