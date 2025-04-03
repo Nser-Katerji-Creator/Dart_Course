@@ -83,8 +83,14 @@ Future<void> createPerson(PersonRepository repository) async {
   final name = stdin.readLineSync();
   print('Enter personal number:');
   final personalNumber = stdin.readLineSync();
-  final person = Person( name: name!, personalNumber: personalNumber!);
+  final person = Person(
+    id: Uuid().v4(),
+    name: name!,
+    personalNumber: personalNumber!,
+  );
   await repository.create(person);
+  //final person = Person(id:Uuid().v4(), name: name!, personalNumber: personalNumber!);
+ // await repository.create(person);
   print('Person created successfully.');
 }
 
@@ -120,7 +126,7 @@ Future<void> updatePersonByPersonnummer(PersonRepository repository) async {
   // Create the updated person object
   final updatedPerson = Person(
     name: name?.isNotEmpty == true ? name! : person.name,
-    personalNumber: personalNumber.isNotEmpty == true ? personalNumber : person.personalNumber,
+    personalNumber: personalNumber.isNotEmpty == true ? personalNumber : person.personalNumber, id: '',
   );
 
   // Send the update request to the repository
@@ -135,7 +141,7 @@ Future<void> updatePerson(PersonRepository repository) async {
   final name = stdin.readLineSync();
   //print('Enter new id number:');
   //final id = stdin.readLineSync();
-  final person = Person(name: name!, personalNumber: personalNumber!);
+  final person = Person(name: name!, personalNumber: personalNumber!, id: '');
   await repository.updateBypersonalNumber(personalNumber, person);
   print('Person updated successfully.');
 }
@@ -186,9 +192,10 @@ Future<void> createVehicle(VehicleRepository repository) async {
   print('Enter owner ID:');
   final ownerId = stdin.readLineSync();
   final vehicle = Vehicle(
+    id: Uuid().v4(),
     registreringsnummer: registreringsnummer!,
     type: type!,
-    ownerId: int.parse(ownerId!),
+    ownerId: ownerId!,
   );
   await repository.create(vehicle);
   print('Vehicle created successfully.');
@@ -211,7 +218,7 @@ Future<void> updateVehicle(VehicleRepository repository) async {
   final vehicle = Vehicle(
     registreringsnummer: registreringsnummer!,
     type: type!,
-    ownerId: int.parse(ownerId!),
+    ownerId: ownerId!, id: '',
   );
   await repository.update(registreringsnummer, vehicle);
   print('Vehicle updated successfully.');
@@ -337,7 +344,7 @@ Future<void> createParking(ParkingRepository repository) async {
   final parkingSpaceId = stdin.readLineSync();
   final parking = Parking(
     id: Uuid().v4(),
-    vehicleId: int.parse(vehicleId!),
+    vehicleId: vehicleId!,
     parkingSpaceId: parkingSpaceId.toString(),
     startTime: DateTime.now(),
   );
@@ -364,7 +371,7 @@ Future<void> updateParking(ParkingRepository repository) async {
   final endTime = endTimeInput?.isNotEmpty == true ? DateTime.parse(endTimeInput!) : null;
   final parking = Parking(
     id: id!,
-    vehicleId: int.parse(vehicleId!),
+    vehicleId: vehicleId!,
     parkingSpaceId: parkingSpaceId.toString(),
     startTime: DateTime.now(),
     endTime: endTime,

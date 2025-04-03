@@ -10,9 +10,9 @@ class SqlitePersonRepository implements PersonRepository {
   Future<int> create(Person person) async {
     final db = dbHelper.database;
     db.execute('''
-      INSERT INTO persons (name, personalNumber)
-      VALUES (?, ?);
-    ''', [person.name, person.personalNumber]);
+      INSERT INTO persons (id, name, personalNumber)
+      VALUES (?, ?, ?);
+    ''', [person.id, person.name, person.personalNumber]);
 
     final result = db.select('SELECT last_insert_rowid() as id;');
     return result.first['id'] as int;

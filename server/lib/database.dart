@@ -26,19 +26,19 @@ class DatabaseHelper {
     // Create tables if they don't exist
     db.execute('''
       CREATE TABLE IF NOT EXISTS persons (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT NOT NULL,
         name TEXT NOT NULL,
-        personalNumber TEXT NOT NULL
+        personalNumber TEXT PRIMARY KEY NOT NULL
       );
     ''');
 
     db.execute('''
       CREATE TABLE IF NOT EXISTS vehicles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        registreringsnummer TEXT NOT NULL,
+        id TEXT NOT NULL,
+        registreringsnummer TEXT PRIMARY KEY,
         type TEXT NOT NULL,
-        ownerId INTEGER NOT NULL,
-        FOREIGN KEY (ownerId) REFERENCES persons(id)
+        ownerId TEXT NOT NULL,
+        FOREIGN KEY (ownerId) REFERENCES persons(personalNumber)
       );
     ''');
 
@@ -53,11 +53,11 @@ class DatabaseHelper {
     db.execute('''
       CREATE TABLE IF NOT EXISTS parkings (
         id TEXT PRIMARY KEY NOT NULL,
-        vehicleId INTEGER NOT NULL,
+        vehicleId TEXT NOT NULL,
         parkingspaceId TEXT NOT NULL,
         startTime TEXT NOT NULL,
         endTime TEXT,
-        FOREIGN KEY (vehicleId) REFERENCES vehicles(id),
+        FOREIGN KEY (vehicleId) REFERENCES vehicles(registreringsnummer),
         FOREIGN KEY (parkingspaceId) REFERENCES parkingspaces(id)
       );
     ''');

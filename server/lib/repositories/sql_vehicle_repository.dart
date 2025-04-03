@@ -16,9 +16,9 @@ class SqliteVehicleRepository implements VehicleRepository {
     } as Vehicle);*/
 
     db.execute('''
-      INSERT INTO vehicles (registreringsnummer, type, ownerId)
-      VALUES (?, ?, ?);
-    ''', [vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
+      INSERT INTO vehicles (id, registreringsnummer, type, ownerId)
+      VALUES (?, ?, ?, ?);
+    ''', [vehicle.id, vehicle.registreringsnummer, vehicle.type, vehicle.ownerId]);
 
       final result = db.select('SELECT last_insert_rowid() as id;');
        return result.first['id'] as int;
