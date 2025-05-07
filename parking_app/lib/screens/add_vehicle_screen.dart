@@ -1,29 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
-import '../models/vehicle.dart';
-import '../repositories/vehicle_repository.dart';
-import '../services/auth_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_app/blocs/auth/auth_bloc.dart'; // Assuming path
+import 'package:parking_app/blocs/auth/auth_state.dart'; // Assuming path
+import 'package:parking_app/blocs/vehicle/vehicle_bloc.dart'; // Assuming path
+import 'package:parking_app/blocs/vehicle/vehicle_event.dart'; // Assuming path
+import 'package:parking_app/blocs/vehicle/vehicle_state.dart'; // Assuming path
+import 'package:parking_app/models/vehicle.dart'; // Assuming path
+import 'package:uuid/uuid.dart'; // Keep for generating ID if needed by BLoC event
 
 class AddVehicleScreen extends StatefulWidget {
-  final Vehicle? vehicle;
+  final Vehicle? vehicle; // Vehicle to edit, if any
 
   const AddVehicleScreen({super.key, this.vehicle});
 
   @override
-  State<AddVehicleScreen> createState() => _AddVehicleScreenState();
+  State<AddVehicleScreen> createState() => _AddVehicleScreenBlocState();
 }
 
-class _AddVehicleScreenState extends State<AddVehicleScreen> {
+class _AddVehicleScreenBlocState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _registrationNumberController = TextEditingController();
   final _typeController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorMessage;
+  // Removed _isLoading and _errorMessage
+  String? _ownerId;
 
   @override
   void initState() {
     super.initState();
+    // Get ownerId from AuthBloc state
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      _ownerId = authState.user.personalNumber; // Assuming personalNumber is the ID
+    } else {
+      // Handle user not authenticated - ideally AuthWrapper prevents this screen access
+      print("Error: User not authenticated in AddVehicleScreen.");
+      // Optionally show error and pop screen
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication error. Please log in again.'), backgroundColor: Colors.red),
+        );
+        Navigator.of(context).pop();
+      });
+    }
+
+    // Pre-fill form if editing an existing vehicle
     if (widget.vehicle != null) {
       _registrationNumberController.text = widget.vehicle!.registreringsnummer ?? '';
       _typeController.text = widget.vehicle!.type ?? '';
@@ -37,62 +57,40 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     super.dispose();
   }
 
-  Future<void> _saveVehicle() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
+  void _saveVehicle() {
+    if (_ownerId == null) {
+       ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cannot save vehicle: User ID not found.'), backgroundColor: Colors.red),
+        );
+       return;
+    }
+    
+    if (_formKey.currentState!.validate()) {
       final registrationNumber = _registrationNumberController.text.trim();
       final type = _typeController.text.trim();
-      
-      final authService = Provider.of<AuthService>(context, listen: false);
-      final vehicleRepository = Provider.of<VehicleRepository>(context, listen: false);
-      
-      final currentUser = await authService.getCurrentUser();
-      if (currentUser == null || currentUser.personalNumber == null) {
-        setState(() {
-          _errorMessage = 'User not found. Please log in again.';
-        });
-        return;
-      }
-      
-      final ownerId = currentUser.personalNumber!;
-      
+
       if (widget.vehicle == null) {
-        // Create new vehicle
+        // Dispatch AddVehicle event
         final newVehicle = Vehicle(
-          id: Uuid().v4(),
+          id: const Uuid().v4(), // Generate ID here or let BLoC/Repo handle it
           registreringsnummer: registrationNumber,
           type: type,
-          ownerId: ownerId,
+          ownerId: _ownerId!, 
         );
-        await vehicleRepository.create(newVehicle);
+        print("Dispatching AddVehicle event for: ${newVehicle.registreringsnummer}");
+        context.read<VehicleBloc>().add(AddVehicle(newVehicle));
       } else {
-        // Update existing vehicle
+        // Dispatch UpdateVehicle event
         final updatedVehicle = Vehicle(
-          id: widget.vehicle!.id,
-          registreringsnummer: registrationNumber,
+          id: widget.vehicle!.id, // Use existing ID
+          registreringsnummer: registrationNumber, // Reg number might be ID used in BLoC
           type: type,
-          ownerId: ownerId,
+          ownerId: _ownerId!, // Owner ID might not change, but include if needed
         );
-        await vehicleRepository.update(widget.vehicle!.registreringsnummer!, updatedVehicle);
+         print("Dispatching UpdateVehicle event for: ${updatedVehicle.registreringsnummer}");
+        // Assuming BLoC's UpdateVehicle uses the original reg number to find the vehicle
+        context.read<VehicleBloc>().add(UpdateVehicle(widget.vehicle!.registreringsnummer!, updatedVehicle));
       }
-      
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to save vehicle: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -102,58 +100,78 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       appBar: AppBar(
         title: Text(widget.vehicle == null ? 'Add Vehicle' : 'Edit Vehicle'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _registrationNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Registration Number',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter registration number';
-                  }
-                  return null;
-                },
-                readOnly: widget.vehicle != null, // Can't change registration number when editing
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _typeController,
-                decoration: const InputDecoration(
-                  labelText: 'Vehicle Type',
-                  border: OutlineInputBorder(),
-                  hintText: 'e.g., Car, Motorcycle',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle type';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+      // Use BlocListener for side effects (navigation, snackbars)
+      body: BlocListener<VehicleBloc, VehicleState>(
+        listener: (context, state) {
+          if (state is VehicleOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+            );
+            Navigator.of(context).pop(); // Go back after successful operation
+          } else if (state is VehicleError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${state.error}'), backgroundColor: Colors.red),
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _registrationNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Registration Number',
+                    border: OutlineInputBorder(),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter registration number';
+                    }
+                    return null;
+                  },
+                  // Prevent editing registration number if updating an existing vehicle
+                  // Assuming registration number is the unique identifier
+                  readOnly: widget.vehicle != null, 
+                  style: widget.vehicle != null ? TextStyle(color: Colors.grey[600]) : null,
                 ),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveVehicle,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : Text(widget.vehicle == null ? 'Add Vehicle' : 'Update Vehicle'),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _typeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Vehicle Type',
+                    border: OutlineInputBorder(),
+                    hintText: 'e.g., Car, Motorcycle',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter vehicle type';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                // Use BlocBuilder to handle the button's loading state
+                BlocBuilder<VehicleBloc, VehicleState>(
+                  builder: (context, state) {
+                    final isLoading = state is VehicleLoading;
+                    return ElevatedButton(
+                      onPressed: isLoading ? null : _saveVehicle,
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(widget.vehicle == null ? 'Add Vehicle' : 'Update Vehicle'),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

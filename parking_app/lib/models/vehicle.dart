@@ -11,6 +11,16 @@ class Vehicle {
     required this.ownerId,
   });
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Vehicle) return false;
+    return registreringsnummer == other.registreringsnummer;
+  }
+
+  @override
+  int get hashCode => registreringsnummer.hashCode;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

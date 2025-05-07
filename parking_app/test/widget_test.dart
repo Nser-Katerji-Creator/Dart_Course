@@ -1,30 +1,35 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:parking_app/main.dart';
+import 'package:parking_app/services/theme_service.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    // Wrap MyApp with ChangeNotifierProvider for ThemeService
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ThemeService>(
+        create: (_) => ThemeService(),
+        child: const MyApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the app starts correctly
+   // Verify that the AppBar title is "Login"
+    expect(find.widgetWithText(AppBar, 'Login'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the "Register" button exists
+    expect(find.widgetWithText(TextButton, 'Don\'t have an account? Register'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Tap the '+' icon and trigger a frame
+    //await tester.tap(find.byIcon(Icons.add));
+   //await tester.pump();
+
+    // Verify that the counter increments
+   // Verify that the AppBar title is "Login"
+    expect(find.widgetWithText(AppBar, 'Login'), findsOneWidget);
+
+    // Verify that the "Register" button exists
+    expect(find.widgetWithText(TextButton, 'Don\'t have an account? Register'), findsOneWidget);
   });
 }
