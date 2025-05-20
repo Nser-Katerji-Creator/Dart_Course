@@ -1,10 +1,11 @@
 import 'package:http/http.dart' as http;
+import 'package:parking_app/services/firebase_auth_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import '../repositories/person_repository.dart';
-import '../repositories/vehicle_repository.dart';
-import '../repositories/parking_repository.dart';
-import '../repositories/parking_space_repository.dart';
+import '../repositories/firebase_person_repository.dart';
+import '../repositories/firebase_vehicle_repository.dart';
+import '../repositories/firebase_parking_repository.dart';
+import '../repositories/firebase_parking_space_repository.dart';
 import '../services/auth_service.dart';
 
 class ApiService {
@@ -12,17 +13,17 @@ class ApiService {
    static const String baseUrl = 'http://localhost:8080'; // For iOS simulator
   
   final http.Client client = http.Client();
-  late final PersonRepository personRepository;
-  late final VehicleRepository vehicleRepository;
-  late final ParkingRepository parkingRepository;
-  late final ParkingSpaceRepository parkingSpaceRepository;
+  late final FirebasePersonRepository personRepository;
+  late final FirebaseVehicleRepository vehicleRepository;
+  late final FirebaseParkingRepository parkingRepository;
+  late final FirebaseParkingSpaceRepository parkingSpaceRepository;
   late final AuthService authService;
   
   ApiService() {
-    personRepository = PersonRepository(baseUrl: baseUrl, client: client);
-    vehicleRepository = VehicleRepository(baseUrl: baseUrl, client: client);
-    parkingRepository = ParkingRepository(baseUrl: baseUrl, client: client);
-    parkingSpaceRepository = ParkingSpaceRepository(baseUrl: baseUrl, client: client);
+    personRepository = FirebasePersonRepository();
+    vehicleRepository = FirebaseVehicleRepository();
+    parkingRepository = FirebaseParkingRepository();
+    parkingSpaceRepository = FirebaseParkingSpaceRepository();
     authService = AuthService();
   }
   
@@ -32,11 +33,12 @@ class ApiService {
     
     return [
       Provider<ApiService>.value(value: apiService),
-      Provider<PersonRepository>.value(value: apiService.personRepository),
-      Provider<VehicleRepository>.value(value: apiService.vehicleRepository),
-      Provider<ParkingRepository>.value(value: apiService.parkingRepository),
-      Provider<ParkingSpaceRepository>.value(value: apiService.parkingSpaceRepository),
+      Provider<FirebasePersonRepository>.value(value: apiService.personRepository),
+      Provider<FirebaseVehicleRepository>.value(value: apiService.vehicleRepository),
+      Provider<FirebaseParkingRepository>.value(value: apiService.parkingRepository),
+      Provider<FirebaseParkingSpaceRepository>.value(value: apiService.parkingSpaceRepository),
       Provider<AuthService>.value(value: apiService.authService),
+      Provider<FirebaseAuthRepository>.value(value: FirebaseAuthRepository()),
     ];
   }
 }

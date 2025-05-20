@@ -19,6 +19,8 @@ class AuthSuccess extends AuthState {
   
   @override
   List<Object?> get props => [user];
+
+  bool get isAdmin => user.email == 'admin@example.com';
 }
 
 class AuthFailure extends AuthState {

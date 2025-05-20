@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
-import '../../../repositories/parking_repository.dart';
+import '../../../repositories/firebase_parking_repository.dart';
 import '../../../models/parking.dart';
 import 'parking_event.dart';
 import 'parking_state.dart';
 
 class ParkingBloc extends Bloc<ParkingEvent, ParkingState> {
-  final ParkingRepository parkingRepository;
+  final FirebaseParkingRepository parkingRepository;
 
   ParkingBloc({required this.parkingRepository}) : super(ParkingInitial()) {
     on<LoadParkings>(_onLoadParkings);

@@ -52,7 +52,7 @@ class _VehicleListScreenBlocState extends State<VehicleListScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Delete Vehicle'),
-          content: Text('Are you sure you want to delete ${vehicle.registreringsnummer ?? 'this vehicle'}?'),
+          content: Text('Are you sure you want to delete ${vehicle.registrationNumber ?? 'this vehicle'}?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -64,9 +64,9 @@ class _VehicleListScreenBlocState extends State<VehicleListScreen> {
               child: const Text('Delete'),
               onPressed: () {
                 // Dispatch DeleteVehicle event
-                if (vehicle.registreringsnummer != null) {
+                if (vehicle.registrationNumber != null) {
                    // Assuming BLoC uses registration number as ID for deletion
-                  context.read<VehicleBloc>().add(DeleteVehicle(vehicle.registreringsnummer!));
+                  context.read<VehicleBloc>().add(DeleteVehicle(vehicle.registrationNumber!));
                 } else {
                    print("Error: Cannot delete vehicle without registration number.");
                    // Optionally show a snackbar error
@@ -121,7 +121,7 @@ class _VehicleListScreenBlocState extends State<VehicleListScreen> {
                           : Icons.two_wheeler,
                       size: 36,
                     ),
-                    title: Text(vehicle.registreringsnummer ?? 'Unknown Reg No'),
+                    title: Text(vehicle.registrationNumber ?? 'Unknown Reg No'),
                     subtitle: Text('Type: ${vehicle.type ?? 'Unknown Type'}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

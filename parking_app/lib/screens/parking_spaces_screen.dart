@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_app/blocs/auth/auth_bloc.dart';
+import 'package:parking_app/blocs/auth/auth_state.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_bloc.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_event.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_state.dart';
@@ -132,6 +134,89 @@ class _ParkingSpacesScreenState extends State<ParkingSpacesScreen> {
           ),
         ],
       ),
+      floatingActionButton: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is AuthSuccess && state.isAdmin) {
+            return FloatingActionButton(
+              onPressed: () async {
+                final result = await showDialog<ParkingSpace>(
+                  context: context,
+                  builder: (context) => _AddParkingSpaceDialog(),
+                );
+                if (result != null) {
+                  context.read<ParkingSpaceBloc>().add(AddParkingSpace(result));
+                }
+              },
+              child: const Icon(Icons.add),
+              tooltip: 'Add Parking Space',
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+}
+
+class _AddParkingSpaceDialog extends StatefulWidget {
+  @override
+  State<_AddParkingSpaceDialog> createState() => _AddParkingSpaceDialogState();
+}
+
+class _AddParkingSpaceDialogState extends State<_AddParkingSpaceDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _addressController = TextEditingController();
+  final _priceController = TextEditingController();
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Parking Space'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Address'),
+              validator: (value) => value == null || value.isEmpty ? 'Enter address' : null,
+            ),
+            TextFormField(
+              controller: _priceController,
+              decoration: const InputDecoration(labelText: 'Price per hour'),
+              keyboardType: TextInputType.number,
+              validator: (value) => value == null || value.isEmpty ? 'Enter price' : null,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final parkingSpace = ParkingSpace(
+                id: '', // Firestore will assign ID
+                address: _addressController.text.trim(),
+                pricePerHour: double.tryParse(_priceController.text.trim()) ?? 0.0,
+              );
+              Navigator.of(context).pop(parkingSpace);
+            }
+          },
+          child: const Text('Add'),
+        ),
+      ],
     );
   }
 }

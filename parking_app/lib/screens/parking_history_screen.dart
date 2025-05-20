@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../models/parking.dart';
 import '../models/parking_space.dart';
 import '../models/vehicle.dart';
-import '../repositories/parking_repository.dart';
-import '../repositories/parking_space_repository.dart';
-import '../repositories/vehicle_repository.dart';
+import '../repositories/firebase_parking_repository.dart';
+import '../repositories/firebase_parking_space_repository.dart';
+import '../repositories/firebase_vehicle_repository.dart';
 import '../services/auth_service.dart';
 
 class ParkingHistoryScreen extends StatefulWidget {
@@ -24,10 +24,12 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _sortAscending = true;
+  late AuthService _authService;
 
   @override
   void initState() {
     super.initState();
+    _authService = Provider.of<AuthService>(context, listen: false);
     _loadData();
   }
 
@@ -38,18 +40,18 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
     });
 
     try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      final parkingRepository = Provider.of<ParkingRepository>(context, listen: false);
-      final parkingSpaceRepository = Provider.of<ParkingSpaceRepository>(context, listen: false);
-      final vehicleRepository = Provider.of<VehicleRepository>(context, listen: false);
-      
-      final currentUser = await authService.getCurrentUser();
+      // Use the same AuthService instance
+      final currentUser = await _authService.getCurrentUser();
       if (currentUser == null || currentUser.personalNumber == null) {
         setState(() {
           _errorMessage = 'User not found. Please log in again.';
         });
         return;
       }
+      
+      final parkingRepository = Provider.of<FirebaseParkingRepository>(context, listen: false);
+      final parkingSpaceRepository = Provider.of<FirebaseParkingSpaceRepository>(context, listen: false);
+      final vehicleRepository = Provider.of<FirebaseVehicleRepository>(context, listen: false);
       
       // Load all data
       final allParkings = widget.showActive 
@@ -61,15 +63,13 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
       
       // Create lookup maps
       final parkingSpacesMap = {for (var space in allParkingSpaces) space.id: space};
-      final vehiclesMap = {for (var vehicle in allVehicles) (vehicle.registreringsnummer!): vehicle};
+      final vehiclesMap = {for (var vehicle in allVehicles) vehicle.id: vehicle}; // FIX: use vehicle.id as key
       
-      // Filter parkings for current user's vehicles
-      final userVehicles = allVehicles.where((v) => 
-        v.ownerId.toString() == currentUser.personalNumber).toList();
-      final userVehicleIds = userVehicles.map((v) => (v.registreringsnummer!)).toList();
+      // Filter parkings for current user's vehicles (by vehicle ID, not registration number)
+      final userVehicles = allVehicles.where((v) => v.ownerId.toString() == currentUser.personalNumber).toList();
+      final userVehicleIds = userVehicles.map((v) => v.id).toList();
       
-      final userParkings = allParkings.where((p) => 
-        userVehicleIds.contains(p.vehicleId)).toList();
+      final userParkings = allParkings.where((p) => userVehicleIds.contains(p.vehicleId)).toList();
       
       // Sort parkings by start time
       await parkingRepository.sortByStartTime(userParkings, ascending: _sortAscending);
@@ -92,7 +92,7 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
 
   Future<void> _endParking(Parking parking) async {
     try {
-      final parkingRepository = Provider.of<ParkingRepository>(context, listen: false);
+      final parkingRepository = Provider.of<FirebaseParkingRepository>(context, listen: false);
       await parkingRepository.endParking(parking.id);
       
       // Refresh the list
@@ -196,7 +196,7 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Vehicle: ${vehicle.registreringsnummer}',
+                                      'Vehicle: ${vehicle.registrationNumber}',
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
                                     if (parking.endTime == null)

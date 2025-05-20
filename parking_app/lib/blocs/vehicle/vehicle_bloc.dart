@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
-import '../../../repositories/vehicle_repository.dart';
+import '../../../repositories/firebase_vehicle_repository.dart';
 import '../../../models/vehicle.dart';
 import 'vehicle_event.dart';
 import 'vehicle_state.dart';
 
 class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
-  final VehicleRepository vehicleRepository;
+  final FirebaseVehicleRepository vehicleRepository;
 
   VehicleBloc({required this.vehicleRepository}) : super(VehicleInitial()) {
     on<LoadVehicles>(_onLoadVehicles);

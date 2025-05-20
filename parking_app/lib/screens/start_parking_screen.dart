@@ -64,7 +64,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
       );
       return;
     }
-    if (_selectedVehicle!.registreringsnummer == null) {
+    if (_selectedVehicle!.registrationNumber == null) {
        ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selected vehicle has no registration number'), backgroundColor: Colors.red),
       );
@@ -74,7 +74,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
     // Create a new parking object
     final newParking = Parking(
       id: const Uuid().v4(), // ID generation might happen in BLoC/Repo
-      vehicleId: _selectedVehicle!.registreringsnummer!,
+      vehicleId: _selectedVehicle!.id, // FIX: Use vehicle.id, not registrationNumber
       parkingSpaceId: widget.parkingSpace.id,
       startTime: DateTime.now(),
       // endTime and cost are null initially
@@ -201,7 +201,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                                 items: userVehicles.map((vehicle) {
                                   return DropdownMenuItem<Vehicle>(
                                     value: vehicle,
-                                    child: Text('${vehicle.registreringsnummer ?? 'No Reg#'} (${vehicle.type ?? 'N/A'})'),
+                                    child: Text('${vehicle.registrationNumber ?? 'No Reg#'} (${vehicle.type ?? 'N/A'})'),
                                   );
                                 }).toList(),
                                 onChanged: isParkingActionLoading ? null : (Vehicle? value) {

@@ -1,34 +1,54 @@
 import "package:bloc/bloc.dart";
-import 'package:parking_app/repositories/person_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:parking_app/services/firebase_auth_repository.dart';
+import 'package:parking_app/repositories/firebase_person_repository.dart';
+import '../../models/person.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final PersonRepository personRepository;
+  final FirebasePersonRepository personRepository;
+  final FirebaseAuthRepository authRepository;
 
-  AuthBloc({required this.personRepository}) : super(AuthInitial()) {
+  AuthBloc({
+    required this.personRepository,
+    required this.authRepository,
+  }) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<GetCurrentUser>(_onGetCurrentUser);
     on<UpdateUser>(_onUpdateUser);
+    
+    // Listen to Firebase Auth state changes
+    authRepository.authStateChanges.listen((firebase_auth.User? firebaseUser) {
+      if (firebaseUser == null) {
+        add(LogoutRequested());
+      } else {
+        // User is signed in, get their profile from Firestore
+        _fetchUserProfile(firebaseUser.uid);
+      }
+    });
+  }
+
+  Future<void> _fetchUserProfile(String uid) async {
+    try {
+      final user = await personRepository.getCurrentUser();
+      if (user != null) {
+        add(UpdateUser(user.personalNumber ?? '', user));
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final user = await personRepository.getByPersonalNumber(event.personalNumber);
-      if (user != null) {
-        // Save user info to shared preferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('currentUserId', user.id);
-        await prefs.setString('currentUserPersonalNumber', user.personalNumber ?? '');
-        
-        emit(AuthSuccess(user));
-      } else {
-        emit(const AuthFailure('User not found'));
-      }
+      // Sign in with Firebase Auth
+      await authRepository.signIn(event.email, event.password);
+      
+      // Auth state listener will handle the rest
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -37,14 +57,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onRegisterRequested(RegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await personRepository.create(event.person);
+      // Register with Firebase Auth
+      final userCredential = await authRepository.register(event.email, event.password);
       
-      // Save user info to shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('currentUserId', event.person.id);
-      await prefs.setString('currentUserPersonalNumber', event.person.personalNumber ?? '');
+      // Create user profile in Firestore
+      final person = Person(
+        id:userCredential.user!.uid,
+        name: event.name,
+        email: event.email,
+        personalNumber: event.personalNumber,
+      );
       
-      emit(AuthSuccess(event.person));
+      await personRepository.create(person);
+      emit(AuthSuccess(person));
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -53,11 +78,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      // Clear user info from shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('currentUserId');
-      await prefs.remove('currentUserPersonalNumber');
-      
+      await authRepository.signOut();
       emit(LoggedOut());
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -67,12 +88,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onGetCurrentUser(GetCurrentUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      // Get user info from shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      final personalNumber = prefs.getString('currentUserPersonalNumber');
+      final firebaseUser = authRepository.currentUser;
       
-      if (personalNumber != null && personalNumber.isNotEmpty) {
-        final user = await personRepository.getByPersonalNumber(personalNumber);
+      if (firebaseUser != null) {
+        final user = await personRepository.getCurrentUser();
         if (user != null) {
           emit(AuthSuccess(user));
         } else {

@@ -6,21 +6,22 @@ import 'package:parking_app/blocs/auth/auth_bloc.dart';
 import 'package:parking_app/blocs/auth/auth_event.dart';
 import 'package:parking_app/blocs/auth/auth_state.dart';
 import 'package:parking_app/models/person.dart';
-import '../mocks/mock_repositories.dart';
+import '../mocks/mock_firebase_repositories.dart' as mock_firebase_repos;
 
 void main() {
-  late MockPersonRepository mockPersonRepository;
+  late mock_firebase_repos.MockFirebasePersonRepository mockPersonRepository;
+  late mock_firebase_repos.MockFirebaseAuthRepository mockAuthRepository;
   late Person testUser;
   
   setUp(() {
-    mockPersonRepository = MockPersonRepository();
-    
+    mockPersonRepository = mock_firebase_repos.MockFirebasePersonRepository();
+    mockAuthRepository = mock_firebase_repos.MockFirebaseAuthRepository();
     testUser = Person(
       id: '1',
       name: 'Test User',
       personalNumber: '123456-7890',
+      email: 'test@example.com',
     );
-    
     // Setup for SharedPreferences
     SharedPreferences.setMockInitialValues({});
   });
@@ -31,9 +32,12 @@ void main() {
       build: () {
         when(() => mockPersonRepository.getByPersonalNumber('123456-7890'))
             .thenAnswer((_) async => testUser);
-        return AuthBloc(personRepository: mockPersonRepository);
+        return AuthBloc(
+          personRepository: mockPersonRepository,
+          authRepository: mockAuthRepository,
+        );
       },
-      act: (bloc) => bloc.add(const LoginRequested('123456-7890')),
+      act: (bloc) => bloc.add(const LoginRequested('123456-7890', '123456-7890')),
       expect: () => [
         isA<AuthLoading>(),
         isA<AuthSuccess>().having((state) => state.user, 'user', testUser),
@@ -48,9 +52,12 @@ void main() {
       build: () {
         when(() => mockPersonRepository.getByPersonalNumber('123456-7890'))
             .thenAnswer((_) async => null);
-        return AuthBloc(personRepository: mockPersonRepository);
+        return AuthBloc(
+          personRepository: mockPersonRepository,
+          authRepository: mockAuthRepository,
+        );
       },
-      act: (bloc) => bloc.add(const LoginRequested('123456-7890')),
+      act: (bloc) => bloc.add(const LoginRequested('123456-7890', '123456-7890')),
       expect: () => [
         isA<AuthLoading>(),
         isA<AuthFailure>().having(
@@ -66,9 +73,12 @@ void main() {
       build: () {
         when(() => mockPersonRepository.getByPersonalNumber('123456-7890'))
             .thenThrow(Exception('Failed to login'));
-        return AuthBloc(personRepository: mockPersonRepository);
+        return AuthBloc(
+          personRepository: mockPersonRepository,
+          authRepository: mockAuthRepository,
+        );
       },
-      act: (bloc) => bloc.add(const LoginRequested('123456-7890')),
+      act: (bloc) => bloc.add(const LoginRequested('123456-7890', '123456-7890')),
       expect: () => [
         isA<AuthLoading>(),
         isA<AuthFailure>().having(
@@ -83,10 +93,19 @@ void main() {
       'emits [AuthLoading, AuthSuccess] when RegisterRequested is added and successful',
       build: () {
         when(() => mockPersonRepository.create(testUser))
-            .thenAnswer((_) async {});
-        return AuthBloc(personRepository: mockPersonRepository);
+            .thenAnswer((_) async => Future.value());
+        return AuthBloc(
+          personRepository: mockPersonRepository,
+          authRepository: mockAuthRepository,
+        );
       },
-      act: (bloc) => bloc.add(RegisterRequested(testUser)),
+      act: (bloc) => bloc.add(RegisterRequested(
+        testUser,
+        email: testUser.personalNumber ?? '',
+        password: testUser.personalNumber ?? '',
+        name: testUser.name ?? '',
+        personalNumber: testUser.personalNumber ?? '',
+      )),
       expect: () => [
         isA<AuthLoading>(),
         isA<AuthSuccess>().having((state) => state.user, 'user', testUser),
@@ -99,7 +118,10 @@ void main() {
     blocTest<AuthBloc, AuthState>(
       'emits [AuthLoading, LoggedOut] when LogoutRequested is added',
       build: () {
-        return AuthBloc(personRepository: mockPersonRepository);
+        return AuthBloc(
+          personRepository: mockPersonRepository,
+          authRepository: mockAuthRepository,
+        );
       },
       act: (bloc) => bloc.add(LogoutRequested()),
       expect: () => [

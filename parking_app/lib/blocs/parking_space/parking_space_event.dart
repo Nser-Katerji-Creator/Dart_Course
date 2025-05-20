@@ -29,3 +29,10 @@ class GetParkingSpaceById extends ParkingSpaceEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class AddParkingSpace extends ParkingSpaceEvent {
+  final ParkingSpace parkingSpace;
+  const AddParkingSpace(this.parkingSpace);
+  @override
+  List<Object?> get props => [parkingSpace];
+}

@@ -5,19 +5,19 @@ import 'package:parking_app/blocs/vehicle/vehicle_bloc.dart';
 import 'package:parking_app/blocs/vehicle/vehicle_event.dart';
 import 'package:parking_app/blocs/vehicle/vehicle_state.dart';
 import 'package:parking_app/models/vehicle.dart';
-import '../mocks/mock_repositories.dart';
+import '../mocks/mock_firebase_vehicle_repository.dart';
 
 void main() {
-  late MockVehicleRepository mockVehicleRepository;
+  late MockFirebaseVehicleRepository mockVehicleRepository;
   late List<Vehicle> testVehicles;
   late Vehicle testVehicle;
 
   setUp(() {
-    mockVehicleRepository = MockVehicleRepository();
+    mockVehicleRepository = MockFirebaseVehicleRepository();
     
     testVehicle = Vehicle(
       id: '1',
-      registreringsnummer: 'ABC123',
+      registrationNumber: 'ABC123',
       type: 'Car',
       ownerId: 'owner1',
     );
@@ -26,7 +26,7 @@ void main() {
       testVehicle,
       Vehicle(
         id: '2',
-        registreringsnummer: 'DEF456',
+        registrationNumber: 'DEF456',
         type: 'Truck',
         ownerId: 'owner1',
       ),

@@ -5,15 +5,15 @@ import 'package:parking_app/blocs/parking_space/parking_space_bloc.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_event.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_state.dart';
 import 'package:parking_app/models/parking_space.dart';
-import '../mocks/mock_repositories.dart';
+import '../mocks/mock_firebase_parking_space_repository.dart';
 
 void main() {
-  late MockParkingSpaceRepository mockParkingSpaceRepository;
+  late MockFirebaseParkingSpaceRepository mockParkingSpaceRepository;
   late List<ParkingSpace> testParkingSpaces;
   late ParkingSpace testParkingSpace;
 
   setUp(() {
-    mockParkingSpaceRepository = MockParkingSpaceRepository();
+    mockParkingSpaceRepository = MockFirebaseParkingSpaceRepository();
     
     testParkingSpace = ParkingSpace(
       id: '1',

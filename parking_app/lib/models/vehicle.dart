@@ -1,13 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Vehicle {
   final String id;
-  final String? registreringsnummer;
+  final String? registrationNumber;
   final String? type;
   final String ownerId;
 
   Vehicle({
     required this.id,
-    required this.registreringsnummer,
-    required this.type,
+    this.registrationNumber,
+    this.type,
     required this.ownerId,
   });
 
@@ -15,16 +17,16 @@ class Vehicle {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! Vehicle) return false;
-    return registreringsnummer == other.registreringsnummer;
+    return registrationNumber == other.registrationNumber;
   }
 
   @override
-  int get hashCode => registreringsnummer.hashCode;
+  int get hashCode => registrationNumber.hashCode;
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'registreringsnummer': registreringsnummer,
+      'registrationNumber': registrationNumber,
       'type': type,
       'ownerId': ownerId,
     };
@@ -33,9 +35,24 @@ class Vehicle {
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
       id: json['id'] as String,
-      registreringsnummer: json['registreringsnummer'],
-      type: json['type'],
-      ownerId: json['ownerId'],
+      registrationNumber: json['registrationNumber'] as String?,
+      type: json['type'] as String?,
+      ownerId: json['ownerId'] as String,
+    );
+  }
+
+  // Create a copy of this Vehicle with the given field values updated
+  Vehicle copyWith({
+    String? id,
+    String? registrationNumber,
+    String? type,
+    String? ownerId,
+  }) {
+    return Vehicle(
+      id: id ?? this.id,
+      registrationNumber: registrationNumber ?? this.registrationNumber,
+      type: type ?? this.type,
+      ownerId: ownerId ?? this.ownerId,
     );
   }
 }

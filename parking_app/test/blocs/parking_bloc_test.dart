@@ -5,10 +5,10 @@ import 'package:parking_app/blocs/parking/parking_bloc.dart';
 import 'package:parking_app/blocs/parking/parking_event.dart';
 import 'package:parking_app/blocs/parking/parking_state.dart';
 import 'package:parking_app/models/parking.dart';
-import '../mocks/mock_repositories.dart';
+import '../mocks/mock_firebase_parking_repository.dart';
 
 void main() {
-  late MockParkingRepository mockParkingRepository;
+  late MockFirebaseParkingRepository mockParkingRepository;
   late List<Parking> testParkings;
   late Parking testParking;
   late Parking testActiveParking;
@@ -16,7 +16,7 @@ void main() {
   late List<Parking> testParkingHistory;
 
   setUp(() {
-    mockParkingRepository = MockParkingRepository();
+    mockParkingRepository = MockFirebaseParkingRepository();
     
     testParking = Parking(
       id: '1',
@@ -129,7 +129,7 @@ void main() {
       'emits [ParkingLoading, ParkingOperationSuccess] when EndParking is added and successful',
       build: () {
         when(() => mockParkingRepository.endParking('2'))
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async => Future.value());
         return ParkingBloc(parkingRepository: mockParkingRepository);
       },
       act: (bloc) => bloc.add(const EndParking('2')),

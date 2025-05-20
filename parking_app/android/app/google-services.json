@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "183759925017",
+    "firebase_url": "https://parking-app-be29f-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "parking-app-be29f",
+    "storage_bucket": "parking-app-be29f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183759925017:android:5a954cf3284271f39cdf88",
+        "android_client_info": {
+          "package_name": "com.example.parking_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7Nj00BpFWt_OzS8Jvx6x9nvKaaN3tEYA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

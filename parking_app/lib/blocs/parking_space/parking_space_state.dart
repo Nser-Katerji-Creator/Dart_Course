@@ -38,3 +38,5 @@ class ParkingSpaceError extends ParkingSpaceState {
   @override
   List<Object?> get props => [error];
 }
+
+class ParkingSpaceAdded extends ParkingSpaceState {}

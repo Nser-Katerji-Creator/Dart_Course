@@ -45,7 +45,7 @@ class _AddVehicleScreenBlocState extends State<AddVehicleScreen> {
 
     // Pre-fill form if editing an existing vehicle
     if (widget.vehicle != null) {
-      _registrationNumberController.text = widget.vehicle!.registreringsnummer ?? '';
+      _registrationNumberController.text = widget.vehicle!.registrationNumber ?? '';
       _typeController.text = widget.vehicle!.type ?? '';
     }
   }
@@ -73,23 +73,23 @@ class _AddVehicleScreenBlocState extends State<AddVehicleScreen> {
         // Dispatch AddVehicle event
         final newVehicle = Vehicle(
           id: const Uuid().v4(), // Generate ID here or let BLoC/Repo handle it
-          registreringsnummer: registrationNumber,
+          registrationNumber: registrationNumber,
           type: type,
           ownerId: _ownerId!, 
         );
-        print("Dispatching AddVehicle event for: ${newVehicle.registreringsnummer}");
+        print("Dispatching AddVehicle event for: ${newVehicle.registrationNumber}");
         context.read<VehicleBloc>().add(AddVehicle(newVehicle));
       } else {
         // Dispatch UpdateVehicle event
         final updatedVehicle = Vehicle(
           id: widget.vehicle!.id, // Use existing ID
-          registreringsnummer: registrationNumber, // Reg number might be ID used in BLoC
+          registrationNumber: registrationNumber, // Reg number might be ID used in BLoC
           type: type,
           ownerId: _ownerId!, // Owner ID might not change, but include if needed
         );
-         print("Dispatching UpdateVehicle event for: ${updatedVehicle.registreringsnummer}");
+         print("Dispatching UpdateVehicle event for: ${updatedVehicle.registrationNumber}");
         // Assuming BLoC's UpdateVehicle uses the original reg number to find the vehicle
-        context.read<VehicleBloc>().add(UpdateVehicle(widget.vehicle!.registreringsnummer!, updatedVehicle));
+        context.read<VehicleBloc>().add(UpdateVehicle(widget.vehicle!.registrationNumber!, updatedVehicle));
       }
     }
   }
