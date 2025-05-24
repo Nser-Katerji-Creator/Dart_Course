@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class FirebaseAuthRepository {
   final _auth = FirebaseAuth.instance;
@@ -39,6 +40,20 @@ class FirebaseAuthRepository {
       await _auth.signOut();
     } catch (e) {
       throw Exception('Failed to sign out: ${e.toString()}');
+    }
+  }
+
+  // Sign in with GitHub (web only)
+  Future<UserCredential> signInWithGitHub() async {
+    try {
+      if (kIsWeb) {
+        GithubAuthProvider githubProvider = GithubAuthProvider();
+        return await _auth.signInWithPopup(githubProvider);
+      } else {
+        throw UnimplementedError('GitHub sign-in is only implemented for web. For mobile, implement a custom OAuth flow.');
+      }
+    } catch (e) {
+      throw Exception('Failed to sign in with GitHub: \\${e.toString()}');
     }
   }
 }

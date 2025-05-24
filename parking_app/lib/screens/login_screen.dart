@@ -31,11 +31,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Login Failed: ${state.error}'),
+                content: Text('Login Failed: \\${state.error}'),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
@@ -46,6 +46,45 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const HomeScreen()),
             );
+          } else if (state is AuthRequirePersonalNumber) {
+            // Prompt for personal number and dispatch CompleteGitHubRegistration
+            final personalNumber = await showDialog<String>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                final controller = TextEditingController();
+                return AlertDialog(
+                  title: const Text('Complete Registration'),
+                  content: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Personal Number',
+                      hintText: 'YYYYMMDD-XXXX',
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        if (controller.text.trim().isNotEmpty) {
+                          Navigator.of(context).pop(controller.text.trim());
+                        }
+                      },
+                      child: const Text('Submit'),
+                    ),
+                  ],
+                );
+              },
+            );
+            if (personalNumber != null && personalNumber.isNotEmpty) {
+              context.read<AuthBloc>().add(
+                CompleteGitHubRegistration(
+                  uid: state.uid,
+                  name: state.name,
+                  email: state.email,
+                  personalNumber: personalNumber,
+                ),
+              );
+            }
           }
         },
         builder: (context, state) {
@@ -120,6 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : const Text('Login'),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            context.read<AuthBloc>().add(GitHubSignInRequested());
+                          },
+                    child: const Text('Sign in with GitHub'),
                   ),
                   const SizedBox(height: 16),
                   TextButton(

@@ -19,7 +19,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutRequested>(_onLogoutRequested);
     on<GetCurrentUser>(_onGetCurrentUser);
     on<UpdateUser>(_onUpdateUser);
-    
+    on<GitHubSignInRequested>(_onGitHubSignInRequested);
+    on<CompleteGitHubRegistration>(_onCompleteGitHubRegistration);
+
     // Listen to Firebase Auth state changes
     authRepository.authStateChanges.listen((firebase_auth.User? firebaseUser) {
       if (firebaseUser == null) {
@@ -47,7 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       // Sign in with Firebase Auth
       await authRepository.signIn(event.email, event.password);
-      
+
       // Auth state listener will handle the rest
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -59,15 +61,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       // Register with Firebase Auth
       final userCredential = await authRepository.register(event.email, event.password);
-      
+
       // Create user profile in Firestore
       final person = Person(
-        id:userCredential.user!.uid,
+        id: userCredential.user!.uid,
         name: event.name,
         email: event.email,
         personalNumber: event.personalNumber,
       );
-      
+
       await personRepository.create(person);
       emit(AuthSuccess(person));
     } catch (e) {
@@ -89,7 +91,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final firebaseUser = authRepository.currentUser;
-      
+
       if (firebaseUser != null) {
         final user = await personRepository.getCurrentUser();
         if (user != null) {
@@ -110,6 +112,49 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await personRepository.update(event.personalNumber, event.person);
       emit(AuthSuccess(event.person));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  Future<void> _onGitHubSignInRequested(GitHubSignInRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final userCredential = await authRepository.signInWithGitHub();
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) throw Exception('No user returned from GitHub sign-in');
+      // Try to get user profile from Firestore
+      var person = await personRepository.getByEmail(firebaseUser.email ?? '');
+      if (person == null) {
+        // If we cannot create a Person (e.g. missing email), throw a clear error
+        if (firebaseUser.email == null || firebaseUser.email!.isEmpty) {
+          throw Exception('GitHub account does not provide an email. Please use a GitHub account with a public email.');
+        }
+        // Instead of creating Person here, emit a special state to prompt for personal number
+        emit(AuthRequirePersonalNumber(
+          firebaseUser.uid,
+          firebaseUser.displayName ?? firebaseUser.email ?? 'GitHub User',
+          firebaseUser.email ?? '',
+        ));
+        return;
+      }
+      emit(AuthSuccess(person));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  Future<void> _onCompleteGitHubRegistration(CompleteGitHubRegistration event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final person = Person(
+        id: event.uid,
+        name: event.name,
+        email: event.email,
+        personalNumber: event.personalNumber,
+      );
+      await personRepository.create(person);
+      emit(AuthSuccess(person));
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }

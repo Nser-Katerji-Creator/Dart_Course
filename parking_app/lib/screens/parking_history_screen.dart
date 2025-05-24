@@ -63,17 +63,13 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
       
       // Create lookup maps
       final parkingSpacesMap = {for (var space in allParkingSpaces) space.id: space};
-      final vehiclesMap = {for (var vehicle in allVehicles) vehicle.id: vehicle}; // FIX: use vehicle.id as key
-      
+      final vehiclesMap = {for (var vehicle in allVehicles) vehicle.id: vehicle}; // use vehicle.id as key
       // Filter parkings for current user's vehicles (by vehicle ID, not registration number)
-      final userVehicles = allVehicles.where((v) => v.ownerId.toString() == currentUser.personalNumber).toList();
+      final userVehicles = allVehicles.where((v) => v.ownerId == currentUser.personalNumber).toList();
       final userVehicleIds = userVehicles.map((v) => v.id).toList();
-      
       final userParkings = allParkings.where((p) => userVehicleIds.contains(p.vehicleId)).toList();
-      
       // Sort parkings by start time
       await parkingRepository.sortByStartTime(userParkings, ascending: _sortAscending);
-      
       setState(() {
         _parkings = userParkings;
         _parkingSpaces = parkingSpacesMap;

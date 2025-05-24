@@ -105,4 +105,20 @@ class FirebasePersonRepository {
       throw Exception('Failed to get current user: ${e.toString()}');
     }
   }
+
+  // Get person by email
+  Future<Person?> getByEmail(String email) async {
+    try {
+      final querySnapshot = await _personsCollection
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isEmpty) {
+        return null;
+      }
+      return Person.fromJson(querySnapshot.docs.first.data() as Map<String, dynamic>);
+    } catch (e) {
+      throw Exception('Failed to load person by email: \\${e.toString()}');
+    }
+  }
 }

@@ -48,3 +48,15 @@ class UpdateUser extends AuthEvent {
   @override
   List<Object?> get props => [personalNumber, person];
 }
+
+class GitHubSignInRequested extends AuthEvent {}
+
+class CompleteGitHubRegistration extends AuthEvent {
+  final String uid;
+  final String name;
+  final String email;
+  final String personalNumber;
+  const CompleteGitHubRegistration({required this.uid, required this.name, required this.email, required this.personalNumber});
+  @override
+  List<Object?> get props => [uid, name, email, personalNumber];
+}
