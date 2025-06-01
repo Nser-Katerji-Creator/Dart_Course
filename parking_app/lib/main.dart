@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:parking_app/blocs/auth/auth_event.dart';
 import 'package:parking_app/blocs/parking_space/parking_space_event.dart';
+import 'package:parking_app/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -20,12 +21,19 @@ import 'repositories/firebase_parking_space_repository.dart';
 import 'firebase_options.dart';
 import 'services/firebase_auth_repository.dart';
 
-Future<void> main() async {
+late NotificationService notificationService;
 
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ); // Add
+  );
+
+  // Initialize NotificationService
+  notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions(); // Request permissions on startup
+
   runApp(
     MultiProvider(
       providers: [
@@ -76,6 +84,7 @@ class MyApp extends StatelessWidget {
             BlocProvider<ParkingBloc>(
               create: (context) => ParkingBloc(
                 parkingRepository: Provider.of<FirebaseParkingRepository>(context, listen: false),
+                notificationService: notificationService, // Pass the global instance
               ),
             ),
             BlocProvider<ParkingSpaceBloc>(

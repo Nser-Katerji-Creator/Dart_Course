@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:parking_app/services/notification_service.dart';
 import '../../../repositories/firebase_parking_repository.dart';
 import '../../../models/parking.dart';
 import 'parking_event.dart';
@@ -6,8 +8,9 @@ import 'parking_state.dart';
 
 class ParkingBloc extends Bloc<ParkingEvent, ParkingState> {
   final FirebaseParkingRepository parkingRepository;
+  final NotificationService notificationService;
 
-  ParkingBloc({required this.parkingRepository}) : super(ParkingInitial()) {
+  ParkingBloc({required this.parkingRepository, required this.notificationService}) : super(ParkingInitial()) {
     on<LoadParkings>(_onLoadParkings);
     on<LoadParkingsByVehicleId>(_onLoadParkingsByVehicleId);
     on<LoadActiveParkings>(_onLoadActiveParkings);
@@ -72,10 +75,15 @@ class ParkingBloc extends Bloc<ParkingEvent, ParkingState> {
   Future<void> _onEndParking(EndParking event, Emitter<ParkingState> emit) async {
     emit(ParkingLoading());
     try {
+      if (event.parkingId.isNotEmpty) {
+        final int numericNotificationId = event.parkingId.hashCode;
+        await notificationService.cancelNotificationById(numericNotificationId);
+      }
+
       await parkingRepository.endParking(event.parkingId);
       emit(const ParkingOperationSuccess('Parking ended successfully'));
     } catch (e) {
-      emit(ParkingError(e.toString()));
+      emit(ParkingError('Failed to end parking: ${e.toString()}'));
     }
   }
 
@@ -89,13 +97,24 @@ class ParkingBloc extends Bloc<ParkingEvent, ParkingState> {
     }
   }
   Future<void> _onStartParking(StartParking event, Emitter<ParkingState> emit) async {
-    // Consider emitting a specific loading state like ParkingStarting
-    emit(ParkingLoading()); // Or a more specific state
+    emit(ParkingLoading());
     try {
-      await parkingRepository.create(event.parking);
+      await parkingRepository.create(event.parking); // Assumes event.parking.id is the definitive ID
+
+      if (event.parking.id.isNotEmpty && event.parking.endTime != null) {
+        final reminderTime = event.parking.endTime!.subtract(const Duration(minutes: 15));
+        if (reminderTime.isAfter(DateTime.now())) {
+          final int numericNotificationId = event.parking.id.hashCode;
+          await notificationService.scheduleNotificationById(
+            id: numericNotificationId,
+            title: 'Parking Reminder',
+            body: 'Parking session ending at ${DateFormat.Hm().format(event.parking.endTime!)}.',
+            scheduledTime: reminderTime,
+            payload: event.parking.id,
+          );
+        }
+      }
       emit(const ParkingOperationSuccess('Parking started successfully'));
-      // Optionally reload relevant parking list (e.g., active parkings)
-      // add(LoadActiveParkings());
     } catch (e) {
       emit(ParkingError('Failed to start parking: ${e.toString()}'));
     }
