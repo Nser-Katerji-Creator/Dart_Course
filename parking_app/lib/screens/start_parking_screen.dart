@@ -25,17 +25,28 @@ class StartParkingScreen extends StatefulWidget {
 class _StartParkingScreenState extends State<StartParkingScreen> {
   Vehicle? _selectedVehicle;
   String? _userId;
+  Duration? _selectedDuration;
+  final List<Map<String, dynamic>> _parkingDurations = [
+    {'text': '30 minutes', 'duration': const Duration(minutes: 30)},
+    {'text': '1 hour', 'duration': const Duration(hours: 1)},
+    {'text': '1 hour 30 minutes', 'duration': const Duration(hours: 1, minutes: 30)},
+    {'text': '2 hours', 'duration': const Duration(hours: 2)},
+    {'text': '3 hours', 'duration': const Duration(hours: 3)},
+    {'text': '5 hours', 'duration': const Duration(hours: 5)},
+    {'text': '8 hours', 'duration': const Duration(hours: 8)},
+  ];
   // Removed local loading/error states, handled by BLoCs
 
   @override
   void initState() {
     super.initState();
+    _selectedDuration = _parkingDurations.first['duration'] as Duration; // Set default duration
+
     // Get user ID from AuthBloc
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      _userId = authState.user.personalNumber; // Assuming personalNumber is the ID
+      _userId = authState.user.personalNumber;
       if (_userId != null) {
-        // Dispatch event to load user's vehicles
         context.read<VehicleBloc>().add(LoadVehicles(_userId!));
       } else {
         _handleAuthError("User ID not found.");
@@ -64,6 +75,13 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
       );
       return;
     }
+    // Add this check:
+    if (_selectedDuration == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a parking duration'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
     if (_selectedVehicle!.registrationNumber == null) {
        ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selected vehicle has no registration number'), backgroundColor: Colors.red),
@@ -71,16 +89,18 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
       return;
     }
 
-    // Create a new parking object
+    final DateTime startTime = DateTime.now();
+    // _selectedDuration is guaranteed non-null here due to the check above.
+    final DateTime endTime = startTime.add(_selectedDuration!);
+
     final newParking = Parking(
-      id: const Uuid().v4(), // ID generation might happen in BLoC/Repo
-      vehicleId: _selectedVehicle!.id, // FIX: Use vehicle.id, not registrationNumber
+      id: const Uuid().v4(),
+      vehicleId: _selectedVehicle!.id,
       parkingSpaceId: widget.parkingSpace.id,
-      startTime: DateTime.now(),
-      // endTime and cost are null initially
+      startTime: startTime,
+      endTime: endTime, // Assign calculated endTime
     );
 
-    // Dispatch StartParking event
     context.read<ParkingBloc>().add(StartParking(newParking));
   }
 
@@ -210,6 +230,47 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                                   });
                                 },
                                 // Add validation if needed
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Select Duration Dropdown
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Select Duration',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              DropdownButtonFormField<Duration>(
+                                value: _selectedDuration,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Select parking duration',
+                                ),
+                                items: _parkingDurations.map((item) {
+                                  return DropdownMenuItem<Duration>(
+                                    value: item['duration'] as Duration,
+                                    child: Text(item['text'] as String),
+                                  );
+                                }).toList(),
+                                onChanged: isParkingActionLoading ? null : (Duration? value) {
+                                  setState(() {
+                                    _selectedDuration = value;
+                                  });
+                                },
+                                validator: (value) { // Basic validation
+                                  if (value == null) {
+                                    return 'Please select a duration.';
+                                  }
+                                  return null;
+                                },
                               ),
                             ],
                           ),
