@@ -9,6 +9,7 @@ import '../models/vehicle.dart';
 import '../repositories/firebase_parking_repository.dart';
 import '../repositories/firebase_parking_space_repository.dart';
 import '../repositories/firebase_vehicle_repository.dart';
+import 'extend_parking_screen.dart';
 
 class ParkingHistoryScreen extends StatefulWidget {
   final bool showActive;
@@ -110,6 +111,23 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
     }
   }
 
+  Future<void> _extendParking(Parking parking, ParkingSpace parkingSpace, Vehicle vehicle) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => ExtendParkingScreen(
+          parking: parking,
+          parkingSpace: parkingSpace,
+          vehicle: vehicle,
+        ),
+      ),
+    );
+    
+    // If parking was extended successfully, refresh the list
+    if (result == true) {
+      await _loadData();
+    }
+  }
+
   void _toggleSortOrder() {
     setState(() {
       _sortAscending = !_sortAscending;
@@ -198,13 +216,28 @@ class _ParkingHistoryScreenState extends State<ParkingHistoryScreen> {
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
                                     if (parking.endTime == null)
-                                      ElevatedButton(
-                                        onPressed: () => _endParking(parking),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                        child: const Text('End Parking'),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ElevatedButton.icon(
+                                            onPressed: () => _extendParking(parking, parkingSpace, vehicle),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.orange.shade700,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            icon: const Icon(Icons.add_circle_outline, size: 18),
+                                            label: const Text('Extend'),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          ElevatedButton(
+                                            onPressed: () => _endParking(parking),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: const Text('End'),
+                                          ),
+                                        ],
                                       ),
                                   ],
                                 ),

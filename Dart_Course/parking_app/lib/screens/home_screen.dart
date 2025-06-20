@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Parking App'),
+        title: const Text('ParkMe'),
         actions: [
           IconButton(
             icon: Icon(themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode),

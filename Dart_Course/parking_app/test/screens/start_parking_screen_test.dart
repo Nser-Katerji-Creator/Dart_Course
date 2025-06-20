@@ -54,16 +54,9 @@ void main() {
     Vehicle(id: 'v2', ownerId: 'user123', registrationNumber: 'XYZ-789', type: 'Motorcycle'),
   ];
 
-  // This list should mirror the one in StartParkingScreen for reliable testing
-  final List<Map<String, dynamic>> parkingDurationsFromScreen = [
-    {'text': '30 minutes', 'duration': const Duration(minutes: 30)},
-    {'text': '1 hour', 'duration': const Duration(hours: 1)},
-    {'text': '1 hour 30 minutes', 'duration': const Duration(hours: 1, minutes: 30)},
-    {'text': '2 hours', 'duration': const Duration(hours: 2)},
-    {'text': '3 hours', 'duration': const Duration(hours: 3)},
-    {'text': '5 hours', 'duration': const Duration(hours: 5)},
-    {'text': '8 hours', 'duration': const Duration(hours: 8)},
-  ];
+  // Test values for the slider-based duration selection
+  final double defaultDurationMinutes = 60.0; // Default 1 hour
+  final double testExtensionMinutes = 120.0; // Test with 2 hours
 
   setUp(() {
     mockAuthBloc = MockAuthBloc();
@@ -98,7 +91,7 @@ void main() {
   }
 
   group('StartParkingScreen Widget Tests', () {
-    testWidgets('renders dropdowns with default values', (WidgetTester tester) async {
+    testWidgets('renders vehicle dropdown and duration slider with default values', (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(StartParkingScreen(parkingSpace: testParkingSpace)));
       await tester.pumpAndSettle();
 
@@ -106,44 +99,40 @@ void main() {
       expect(find.textContaining(testVehicles.first.registrationNumber!), findsOneWidget);
 
       expect(find.text('Select Duration'), findsOneWidget);
-      expect(find.text(parkingDurationsFromScreen.first['text'] as String), findsOneWidget);
+      expect(find.byType(Slider), findsOneWidget);
+      expect(find.textContaining('1 hour'), findsAtLeastNWidgets(1)); // Default duration display
 
       expect(find.byType(ElevatedButton), findsOneWidget);
       expect(find.text('Start Parking'), findsNWidgets(2)); // AppBar + Button
     });
 
-    testWidgets('selecting a different duration updates the selection in UI', (WidgetTester tester) async {
+    testWidgets('interacting with duration slider updates the selection in UI', (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(StartParkingScreen(parkingSpace: testParkingSpace)));
       await tester.pumpAndSettle();
 
-      final durationDropdown = find.byType(DropdownButtonFormField<Duration>);
-      await tester.tap(durationDropdown);
+      final slider = find.byType(Slider);
+      expect(slider, findsOneWidget);
+
+      // Use the quick duration button for 2 hours instead of dragging
+      final twoHourButton = find.text('2h');
+      expect(twoHourButton, findsOneWidget);
+      await tester.tap(twoHourButton);
       await tester.pumpAndSettle();
 
-      final durationToSelectEntry = parkingDurationsFromScreen[2]; // "1 hour 30 minutes"
-      final durationTextToSelect = durationToSelectEntry['text'] as String;
-
-      await tester.tap(find.text(durationTextToSelect).last);
-      await tester.pumpAndSettle();
-
-      // After selection, the DropdownButtonFormField's selected item is displayed.
-      expect(find.text(durationTextToSelect), findsOneWidget);
+      // Should show updated duration
+      expect(find.textContaining('2 hours'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('tapping "Start Parking" dispatches StartParking event with correct endTime', (WidgetTester tester) async {
+    testWidgets('tapping "Start Parking" dispatches StartParking event with correct duration', (WidgetTester tester) async {
       final selectedVehicle = testVehicles.first;
-      final selectedDurationEntry = parkingDurationsFromScreen[1]; // "1 hour"
-      final selectedDuration = selectedDurationEntry['duration'] as Duration;
-      final selectedDurationText = selectedDurationEntry['text'] as String;
 
       await tester.pumpWidget(createTestableWidget(StartParkingScreen(parkingSpace: testParkingSpace)));
       await tester.pumpAndSettle();
 
-      // Explicitly select a duration for clarity, though a default is present.
-      final durationDropdown = find.byType(DropdownButtonFormField<Duration>);
-      await tester.tap(durationDropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(selectedDurationText).last);
+      // Use the quick duration button for 2 hours
+      final twoHourButton = find.text('2h');
+      expect(twoHourButton, findsOneWidget);
+      await tester.tap(twoHourButton);
       await tester.pumpAndSettle();
 
       final DateTime timeBeforeTap = DateTime.now();
@@ -164,8 +153,9 @@ void main() {
       expect(parkingData.startTime.isAfter(timeBeforeTap.subtract(const Duration(seconds: 3))), isTrue);
       expect(parkingData.startTime.isBefore(timeBeforeTap.add(const Duration(seconds: 3))), isTrue);
 
-      // Check planned duration matches selected duration
-      expect(parkingData.plannedDuration, equals(selectedDuration));
+      // Check planned duration is set to 2 hours (120 minutes)
+      expect(parkingData.plannedDuration, isA<Duration>());
+      expect(parkingData.plannedDuration!.inMinutes, equals(120)); // Should be exactly 2 hours
     });
 
     // TODO: Fix this test - BlocConsumer listener testing is complex

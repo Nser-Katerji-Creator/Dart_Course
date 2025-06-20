@@ -17,7 +17,7 @@ void main() async {
   final parkingRepository = HttpParkingRepository(client);
   
   while (true) {
-    print('Welcome to the Parking App!');
+    print('Welcome to ParkMe!');
     print('What would you like to manage?');
     print('1. Persons');
     print('2. Vehicles');

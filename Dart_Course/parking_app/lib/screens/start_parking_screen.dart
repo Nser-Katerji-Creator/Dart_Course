@@ -26,21 +26,17 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
   Vehicle? _selectedVehicle;
   String? _userId;
   Duration? _selectedDuration;
-  final List<Map<String, dynamic>> _parkingDurations = [
-    {'text': '30 minutes', 'duration': const Duration(minutes: 30)},
-    {'text': '1 hour', 'duration': const Duration(hours: 1)},
-    {'text': '1 hour 30 minutes', 'duration': const Duration(hours: 1, minutes: 30)},
-    {'text': '2 hours', 'duration': const Duration(hours: 2)},
-    {'text': '3 hours', 'duration': const Duration(hours: 3)},
-    {'text': '5 hours', 'duration': const Duration(hours: 5)},
-    {'text': '8 hours', 'duration': const Duration(hours: 8)},
-  ];
+  
+  // Slider-based duration configuration
+  double _durationMinutes = 60.0; // Default 1 hour in minutes
+  static const double _minDurationMinutes = 15.0; // Minimum 15 minutes
+  static const double _maxDurationMinutes = 480.0; // Maximum 8 hours (480 minutes)
   // Removed local loading/error states, handled by BLoCs
 
   @override
   void initState() {
     super.initState();
-    _selectedDuration = _parkingDurations.first['duration'] as Duration; // Set default duration
+    _selectedDuration = Duration(minutes: _durationMinutes.round()); // Set default duration from slider
 
     // Get user ID from AuthBloc
     final authState = context.read<AuthBloc>().state;
@@ -66,6 +62,44 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
         Navigator.of(context).pop(); // Go back if user info is missing
       }
     });
+  }
+
+  // Helper method to format duration from minutes to human-readable text
+  String _formatDuration(double minutes) {
+    if (minutes < 60) {
+      return '${minutes.round()} min';
+    } else {
+      final hours = minutes / 60;
+      if (minutes % 60 == 0) {
+        final h = hours.round();
+        return h == 1 ? '1 hour' : '${h} hours';
+      } else {
+        final h = hours.floor();
+        final m = (minutes % 60).round();
+        return '${h}h ${m}m';
+      }
+    }
+  }
+
+  // Helper method to build quick duration selection buttons
+  Widget _buildQuickDurationButton(String text, double minutes) {
+    final isSelected = _durationMinutes == minutes;
+    return OutlinedButton(
+      onPressed: () {
+        setState(() {
+          _durationMinutes = minutes;
+          _selectedDuration = Duration(minutes: minutes.round());
+        });
+      },
+      style: OutlinedButton.styleFrom(
+        backgroundColor: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+        foregroundColor: isSelected ? Theme.of(context).primaryColor : null,
+        side: BorderSide(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade400,
+        ),
+      ),
+      child: Text(text),
+    );
   }
 
   void _startParking(BuildContext context) {
@@ -176,16 +210,16 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                 }
 
                 // Main content when vehicles are loaded
-                return Padding(
+                return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Display Parking Space Info
                       Card(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 12),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -193,7 +227,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                                 'Parking Space',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               Text('Address: ${widget.parkingSpace.address}'),
                               Text('Price: ${widget.parkingSpace.pricePerHour.toStringAsFixed(2)} kr/h'),
                             ],
@@ -202,9 +236,9 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                       ),
                       // Select Vehicle Dropdown
                       Card(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 12),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -212,7 +246,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                                 'Select Vehicle',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               DropdownButtonFormField<Vehicle>(
                                 value: _selectedVehicle,
                                 decoration: const InputDecoration(
@@ -236,11 +270,11 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                           ),
                         ),
                       ),
-                      // Select Duration Dropdown
+                      // Select Duration Slider
                       Card(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 12),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -248,36 +282,62 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                                 'Select Duration',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 8),
-                              DropdownButtonFormField<Duration>(
-                                value: _selectedDuration,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  hintText: 'Select parking duration',
+                              const SizedBox(height: 6),
+                              // Duration display
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                items: _parkingDurations.map((item) {
-                                  return DropdownMenuItem<Duration>(
-                                    value: item['duration'] as Duration,
-                                    child: Text(item['text'] as String),
-                                  );
-                                }).toList(),
-                                onChanged: isParkingActionLoading ? null : (Duration? value) {
-                                  setState(() {
-                                    _selectedDuration = value;
-                                  });
-                                },
-                                validator: (value) { // Basic validation
-                                  if (value == null) {
-                                    return 'Please select a duration.';
-                                  }
-                                  return null;
-                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Duration: ${_formatDuration(_durationMinutes)}',
+                                      style: Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                    Icon(Icons.access_time, color: Colors.grey.shade600),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Duration slider
+                              Column(
+                                children: [
+                                  Slider(
+                                    value: _durationMinutes,
+                                    min: _minDurationMinutes,
+                                    max: _maxDurationMinutes,
+                                    divisions: (((_maxDurationMinutes - _minDurationMinutes) / 15).round()), // 15-minute increments
+                                    label: _formatDuration(_durationMinutes),
+                                    onChanged: isParkingActionLoading ? null : (double value) {
+                                      setState(() {
+                                        _durationMinutes = value;
+                                        _selectedDuration = Duration(minutes: value.round());
+                                      });
+                                    },
+                                  ),
+                                  // Quick duration buttons
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      _buildQuickDurationButton('30m', 30),
+                                      _buildQuickDurationButton('1h', 60),
+                                      _buildQuickDurationButton('2h', 120),
+                                      _buildQuickDurationButton('4h', 240),
+                                      _buildQuickDurationButton('8h', 480),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const Spacer(), // Pushes button to the bottom
+                      // Add some spacing before the button
+                      const SizedBox(height: 16),
                       // Start Parking Button
                       ElevatedButton(
                         onPressed: isParkingActionLoading ? null : () => _startParking(context),
@@ -292,7 +352,7 @@ class _StartParkingScreenState extends State<StartParkingScreen> {
                               )
                             : const Text('Start Parking'),
                       ),
-                      const SizedBox(height: 16), // Spacing at the bottom
+                      const SizedBox(height: 8), // Reduced spacing at the bottom
                     ],
                   ),
                 );

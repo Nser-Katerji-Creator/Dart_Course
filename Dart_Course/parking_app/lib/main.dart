@@ -9,7 +9,6 @@ import 'screens/register_screen.dart';
 import 'services/api_service.dart';
 import 'services/theme_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/vehicle/vehicle_bloc.dart';
 import 'blocs/parking/parking_bloc.dart';
@@ -25,6 +24,7 @@ import 'services/parking_timer_service.dart';
 
 late NotificationService notificationService;
 late ParkingTimerService parkingTimerService;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +57,8 @@ class MyApp extends StatelessWidget {
     final themeService = Provider.of<ThemeService>(context);
     // Remove direct repository instantiations, use providers from ApiService
     return MaterialApp(
-      title: 'Parking App',
+      title: 'ParkMe',
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
@@ -101,7 +102,7 @@ class MyApp extends StatelessWidget {
                   print('DEBUG: Handling notification action: $action for parking: $parkingId');
                   switch (action) {
                     case 'extend_parking':
-                      print('DEBUG: Dispatching ExtendParking event');
+                      print('DEBUG: Dispatching ExtendParking event with 30 minutes');
                       parkingBloc.add(ExtendParking(parkingId, const Duration(minutes: 30)));
                       break;
                     case 'end_parking':
