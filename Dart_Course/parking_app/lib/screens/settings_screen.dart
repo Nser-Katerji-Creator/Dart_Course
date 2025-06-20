@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/change_email_dialog.dart';
 import '../widgets/change_password_dialog.dart';
+import 'payment_methods_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -204,9 +205,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
-
-                // Account Management Section
+                const SizedBox(height: 24),                // Account Management Section
                 SettingsSection(
                   title: 'Account Management',
                   children: [
@@ -223,6 +222,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: const Text('Update your password'),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: _showChangePasswordDialog,
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.payment),
+                      title: const Text('Payment Methods'),
+                      subtitle: const Text('Manage cards and payment options'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
+                        );
+                      },
                     ),
                     ListTile(
                       leading: const Icon(Icons.security),
