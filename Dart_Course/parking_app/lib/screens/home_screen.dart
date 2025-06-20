@@ -11,6 +11,7 @@ import 'vehicle_list_screen.dart';
 import 'parking_spaces_screen.dart';
 import 'parking_history_screen.dart';
 import 'notification_debug_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,16 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ParkMe'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
