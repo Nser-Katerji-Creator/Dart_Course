@@ -2,9 +2,9 @@ import '../models/payment_method.dart';
 
 abstract class PaymentService {
   Future<List<PaymentMethod>> getPaymentMethods(String userId);
-  Future<PaymentMethod> addPaymentMethod(PaymentMethodRequest request);
-  Future<void> deletePaymentMethod(String paymentMethodId);
-  Future<PaymentMethod> setDefaultPaymentMethod(String paymentMethodId);
+  Future<PaymentMethod> addPaymentMethod(String userId, PaymentMethodRequest request);
+  Future<void> deletePaymentMethod(String userId, String paymentMethodId);
+  Future<PaymentMethod> setDefaultPaymentMethod(String userId, String paymentMethodId);
   Future<PaymentIntent> createPaymentIntent(PaymentIntentRequest request);
   Future<bool> processPayment(String paymentIntentId, String paymentMethodId);
 }
@@ -123,9 +123,8 @@ class MockPaymentService implements PaymentService {
     await Future.delayed(const Duration(milliseconds: 500));
     return List.from(_paymentMethods);
   }
-
   @override
-  Future<PaymentMethod> addPaymentMethod(PaymentMethodRequest request) async {
+  Future<PaymentMethod> addPaymentMethod(String userId, PaymentMethodRequest request) async {
     await Future.delayed(const Duration(seconds: 2));
     
     // Simulate payment processor tokenization
@@ -148,15 +147,13 @@ class MockPaymentService implements PaymentService {
     _paymentMethods.add(paymentMethod);
     return paymentMethod;
   }
-
   @override
-  Future<void> deletePaymentMethod(String paymentMethodId) async {
+  Future<void> deletePaymentMethod(String userId, String paymentMethodId) async {
     await Future.delayed(const Duration(milliseconds: 500));
     _paymentMethods.removeWhere((pm) => pm.id == paymentMethodId);
   }
-
   @override
-  Future<PaymentMethod> setDefaultPaymentMethod(String paymentMethodId) async {
+  Future<PaymentMethod> setDefaultPaymentMethod(String userId, String paymentMethodId) async {
     await Future.delayed(const Duration(milliseconds: 500));
     
     // Reset all to non-default

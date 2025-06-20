@@ -7,10 +7,12 @@ import '../widgets/expiry_date_formatter.dart';
 
 class AddPaymentMethodDialog extends StatefulWidget {
   final PaymentService paymentService;
+  final String userId;
 
   const AddPaymentMethodDialog({
     super.key,
     required this.paymentService,
+    required this.userId,
   });
 
   @override
@@ -177,11 +179,11 @@ class _AddPaymentMethodDialogState extends State<AddPaymentMethodDialog> {
   }
 
   Widget _buildPaymentMethodForm() {
-    switch (_selectedType) {
-      case PaymentMethodType.creditCard:
+    switch (_selectedType) {      case PaymentMethodType.creditCard:
       case PaymentMethodType.debitCard:
         return CreditCardForm(
           paymentService: widget.paymentService,
+          userId: widget.userId,
           isDebitCard: _selectedType == PaymentMethodType.debitCard,
           onSuccess: (paymentMethod) => Navigator.pop(context, paymentMethod),
           onLoading: (loading) => setState(() => _isLoading = loading),
@@ -189,18 +191,21 @@ class _AddPaymentMethodDialogState extends State<AddPaymentMethodDialog> {
       case PaymentMethodType.paypal:
         return PayPalForm(
           paymentService: widget.paymentService,
+          userId: widget.userId,
           onSuccess: (paymentMethod) => Navigator.pop(context, paymentMethod),
           onLoading: (loading) => setState(() => _isLoading = loading),
         );
       case PaymentMethodType.googlePay:
         return GooglePayForm(
           paymentService: widget.paymentService,
+          userId: widget.userId,
           onSuccess: (paymentMethod) => Navigator.pop(context, paymentMethod),
           onLoading: (loading) => setState(() => _isLoading = loading),
         );
       case PaymentMethodType.applePay:
         return ApplePayForm(
           paymentService: widget.paymentService,
+          userId: widget.userId,
           onSuccess: (paymentMethod) => Navigator.pop(context, paymentMethod),
           onLoading: (loading) => setState(() => _isLoading = loading),
         );
@@ -231,6 +236,7 @@ class _AddPaymentMethodDialogState extends State<AddPaymentMethodDialog> {
 // Credit Card Form Component
 class CreditCardForm extends StatefulWidget {
   final PaymentService paymentService;
+  final String userId;
   final bool isDebitCard;
   final Function(PaymentMethod) onSuccess;
   final Function(bool) onLoading;
@@ -238,6 +244,7 @@ class CreditCardForm extends StatefulWidget {
   const CreditCardForm({
     super.key,
     required this.paymentService,
+    required this.userId,
     required this.isDebitCard,
     required this.onSuccess,
     required this.onLoading,
@@ -554,7 +561,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
         billingAddress: billingAddress,
       );
 
-      final paymentMethod = await widget.paymentService.addPaymentMethod(request);
+      final paymentMethod = await widget.paymentService.addPaymentMethod(widget.userId, request);
       widget.onSuccess(paymentMethod);
     } catch (e) {
       if (mounted) {
@@ -574,12 +581,14 @@ class _CreditCardFormState extends State<CreditCardForm> {
 // PayPal Form Component
 class PayPalForm extends StatelessWidget {
   final PaymentService paymentService;
+  final String userId;
   final Function(PaymentMethod) onSuccess;
   final Function(bool) onLoading;
 
   const PayPalForm({
     super.key,
     required this.paymentService,
+    required this.userId,
     required this.onSuccess,
     required this.onLoading,
   });
@@ -630,13 +639,12 @@ class PayPalForm extends StatelessWidget {
     try {
       // Simulate PayPal OAuth flow
       await Future.delayed(const Duration(seconds: 2));
-      
-      final request = PaymentMethodRequest(
+        final request = PaymentMethodRequest(
         type: PaymentMethodType.paypal,
         paypalEmail: 'user@example.com', // This would come from PayPal OAuth
       );
 
-      final paymentMethod = await paymentService.addPaymentMethod(request);
+      final paymentMethod = await paymentService.addPaymentMethod(userId, request);
       onSuccess(paymentMethod);
     } catch (e) {
       if (context.mounted) {
@@ -656,12 +664,14 @@ class PayPalForm extends StatelessWidget {
 // Google Pay Form Component
 class GooglePayForm extends StatelessWidget {
   final PaymentService paymentService;
+  final String userId;
   final Function(PaymentMethod) onSuccess;
   final Function(bool) onLoading;
 
   const GooglePayForm({
     super.key,
     required this.paymentService,
+    required this.userId,
     required this.onSuccess,
     required this.onLoading,
   });
@@ -712,13 +722,12 @@ class GooglePayForm extends StatelessWidget {
     try {
       // Simulate Google Pay setup
       await Future.delayed(const Duration(seconds: 2));
-      
-      final request = PaymentMethodRequest(
+        final request = PaymentMethodRequest(
         type: PaymentMethodType.googlePay,
         metadata: {'device_id': 'mock_device_id'},
       );
 
-      final paymentMethod = await paymentService.addPaymentMethod(request);
+      final paymentMethod = await paymentService.addPaymentMethod(userId, request);
       onSuccess(paymentMethod);
     } catch (e) {
       if (context.mounted) {
@@ -738,12 +747,14 @@ class GooglePayForm extends StatelessWidget {
 // Apple Pay Form Component
 class ApplePayForm extends StatelessWidget {
   final PaymentService paymentService;
+  final String userId;
   final Function(PaymentMethod) onSuccess;
   final Function(bool) onLoading;
 
   const ApplePayForm({
     super.key,
     required this.paymentService,
+    required this.userId,
     required this.onSuccess,
     required this.onLoading,
   });
@@ -794,13 +805,12 @@ class ApplePayForm extends StatelessWidget {
     try {
       // Simulate Apple Pay setup
       await Future.delayed(const Duration(seconds: 2));
-      
-      final request = PaymentMethodRequest(
+        final request = PaymentMethodRequest(
         type: PaymentMethodType.applePay,
         metadata: {'device_id': 'mock_device_id'},
       );
 
-      final paymentMethod = await paymentService.addPaymentMethod(request);
+      final paymentMethod = await paymentService.addPaymentMethod(userId, request);
       onSuccess(paymentMethod);
     } catch (e) {
       if (context.mounted) {

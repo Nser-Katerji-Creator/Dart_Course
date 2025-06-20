@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/payment_method.dart';
 import '../services/payment_service.dart';
+import '../services/local_payment_service.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_state.dart';
 import '../widgets/payment_method_card.dart';
@@ -16,15 +17,22 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
-  final PaymentService _paymentService = MockPaymentService();
+  final PaymentService _paymentService = LocalPaymentService();
   List<PaymentMethod> _paymentMethods = [];
   bool _isLoading = true;
   String? _error;
-
   @override
   void initState() {
     super.initState();
     _loadPaymentMethods();
+  }
+
+  String _getCurrentUserId() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      return authState.user.personalNumber ?? 'mock_user_id';
+    }
+    return 'mock_user_id';
   }
 
   Future<void> _loadPaymentMethods() async {
@@ -52,11 +60,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       });
     }
   }
-
   Future<void> _addPaymentMethod() async {
+    final userId = _getCurrentUserId();
     final result = await showDialog<PaymentMethod>(
       context: context,
-      builder: (context) => AddPaymentMethodDialog(paymentService: _paymentService),
+      builder: (context) => AddPaymentMethodDialog(
+        paymentService: _paymentService,
+        userId: userId,
+      ),
     );
 
     if (result != null) {
@@ -89,10 +100,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       }
     }
   }
-
   Future<void> _setDefaultPaymentMethod(PaymentMethod paymentMethod) async {
     try {
-      await _paymentService.setDefaultPaymentMethod(paymentMethod.id);
+      final userId = _getCurrentUserId();
+      await _paymentService.setDefaultPaymentMethod(userId, paymentMethod.id);
       await _loadPaymentMethods();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,11 +144,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         ],
       ),
-    );
-
-    if (confirmed == true) {
+    );    if (confirmed == true) {
       try {
-        await _paymentService.deletePaymentMethod(paymentMethod.id);
+        final userId = _getCurrentUserId();
+        await _paymentService.deletePaymentMethod(userId, paymentMethod.id);
         await _loadPaymentMethods();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
